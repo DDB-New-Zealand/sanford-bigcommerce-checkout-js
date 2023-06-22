@@ -7,6 +7,7 @@ export {
     getMobilePaymentMethod,
     getPaymentMethod,
     getPaypalCreditPaymentMethod,
+    getBraintreeAchPaymentMethod,
 } from './payment-methods.mock';
 export { getPaymentFormServiceMock } from './payment-form-service.mock';
 export {
@@ -14,5 +15,6 @@ export {
     getBankInstrument,
     getCardInstrument,
     getInstruments,
+    getAchInstrument,
 } from './instruments.mock';
 export { getDigitalItem, getPhysicalItem, getGiftCertificateItem } from './line-item.mock';

@@ -8,10 +8,11 @@
 /packages/google-pay-integration @bigcommerce/apex-leads
 /packages/hosted-credit-card-integration @bigcommerce/apex-leads
 /packages/payment-integration-api @bigcommerce/checkout
-/packages/payment-integration-test-framework @bigcommerce/checkout
+/packages/test-framework @bigcommerce/checkout
 /packages/workspace-tools @bigcommerce/checkout
 
 # Apex integrations
+/packages/bluesnap-direct-integration @bigcommerce/apex-leads @bigcommerce/kyiv-payments-team
 /packages/google-pay-integration @bigcommerce/apex-leads
 /packages/core/payment/paymentMethod/AffirmPaymentMethod.tsx @bigcommerce/apex-leads
 /packages/core/payment/paymentMethod/AmazonPaymentMethod.tsx @bigcommerce/apex-leads
@@ -49,7 +50,8 @@
 /packages/core/payment/paymentMethod/BoltPaymentMethod.tsx @bigcommerce/kyiv-payments-team
 /packages/core/payment/paymentMethod/BraintreeCreditCardPaymentMethod.tsx @bigcommerce/kyiv-payments-team
 /packages/core/payment/paymentMethod/PaypalCommerceCreditCardPaymentMethod.tsx @bigcommerce/kyiv-payments-team
-/packages/core/payment/paymentMethod/PaypalCommercePaymentMethod.tsx @bigcommerce/kyiv-payments-team
 /packages/core/payment/paymentMethod/PaypalExpressPaymentMethod.tsx @bigcommerce/kyiv-payments-team
 /packages/core/payment/paymentMethod/PaypalPaymentsProPaymentMethod.tsx @bigcommerce/kyiv-payments-team
+/packages/braintree-integration @bigcommerce/kyiv-payments-team
+/packages/paypal-commerce-integration @bigcommerce/kyiv-payments-team
 

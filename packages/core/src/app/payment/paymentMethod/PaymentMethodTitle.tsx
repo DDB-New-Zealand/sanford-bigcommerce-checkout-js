@@ -3,11 +3,11 @@ import { number } from 'card-validator';
 import { compact } from 'lodash';
 import React, { FunctionComponent, memo } from 'react';
 
-import { PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
+import { withLanguage, WithLanguageProps } from '@bigcommerce/checkout/locale';
+import { CheckoutContextProps , PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
 
-import { CheckoutContextProps, withCheckout } from '../../checkout';
+import { withCheckout } from '../../checkout';
 import { connectFormik, ConnectFormikProps } from '../../common/form';
-import { withLanguage, WithLanguageProps } from '../../locale';
 import { CreditCardIconList, mapFromPaymentMethodCardType } from '../creditCard';
 
 import { hasCreditCardNumber } from './CreditCardFieldsetValues';
@@ -53,6 +53,14 @@ function getPaymentMethodTitle(
                 logoUrl: cdnPath('/img/payment-providers/paypal_commerce_logo_letter.svg'),
                 titleText: methodDisplayName,
             },
+            [PaymentMethodId.BraintreeAch]: {
+                logoUrl: method.logoUrl || '',
+                titleText: methodDisplayName,
+            },
+            [PaymentMethodId.BraintreeLocalPaymentMethod]: {
+                logoUrl: method.logoUrl || '',
+                titleText: methodDisplayName,
+            },
             [PaymentMethodId.PaypalCommerce]: {
                 logoUrl: cdnPath('/img/payment-providers/paypal_commerce_logo.svg'),
                 titleText: '',
@@ -95,7 +103,7 @@ function getPaymentMethodTitle(
             },
             [PaymentMethodId.Clearpay]: {
                 logoUrl: cdnPath('/img/payment-providers/clearpay-header.png'),
-                titleText: methodName,
+                titleText: '',
             },
             [PaymentMethodType.GooglePay]: {
                 logoUrl: cdnPath('/img/payment-providers/google-pay.png'),

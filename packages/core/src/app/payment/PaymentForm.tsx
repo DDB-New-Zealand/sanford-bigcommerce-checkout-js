@@ -4,9 +4,9 @@ import { isNil, noop, omitBy } from 'lodash';
 import React, { FunctionComponent, memo, useCallback, useContext, useMemo } from 'react';
 import { ObjectSchema } from 'yup';
 
+import { withLanguage, WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
 
-import { withLanguage, WithLanguageProps } from '../locale';
 import { TermsConditions } from '../termsConditions';
 import { Fieldset, Form, FormContext } from '../ui/form';
 
@@ -152,10 +152,10 @@ const PaymentForm: FunctionComponent<
                 ) : (
                     <PaymentSubmitButton
                         brandName={brandName}
-                        isComplete={!!selectedMethod?.initializationData?.isComplete}
                         initialisationStrategyType={
                             selectedMethod && selectedMethod.initializationStrategy?.type
                         }
+                        isComplete={!!selectedMethod?.initializationData?.isComplete}
                         isDisabled={shouldDisableSubmit}
                         methodGateway={selectedMethod && selectedMethod.gateway}
                         methodId={selectedMethodId}
@@ -217,6 +217,8 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
                 paymentProviderRadio: getUniquePaymentMethodId(method.id, method.gateway),
                 shouldCreateAccount: true,
                 shouldSaveInstrument: false,
+                accountNumber: '',
+                routingNumber: '',
             });
 
             setSubmitted(false);
@@ -268,6 +270,8 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
                     cardNumberVerification: '',
                 },
             },
+            accountNumber: '',
+            routingNumber: '',
         }),
 
         handleSubmit: (values, { props: { onSubmit = noop } }) => {

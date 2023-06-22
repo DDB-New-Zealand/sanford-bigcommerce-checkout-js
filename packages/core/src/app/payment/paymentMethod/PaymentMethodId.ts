@@ -13,11 +13,13 @@ enum PaymentMethodId {
     Boleto = 'boleto',
     Bolt = 'bolt',
     Braintree = 'braintree',
+    BraintreeAch = 'braintreeach',
     BraintreeVenmo = 'braintreevenmo',
     AuthorizeNetGooglePay = 'googlepayauthorizenet',
     BNZGooglePay = 'googlepaybnz',
     BraintreeGooglePay = 'googlepaybraintree',
     BraintreeVisaCheckout = 'braintreevisacheckout',
+    BraintreeLocalPaymentMethod = 'braintreelocalmethods',
     BraintreePaypalCredit = 'braintreepaypalcredit',
     CBAMPGS = 'cba_mpgs',
     CCAvenueMars = 'ccavenuemars',
@@ -57,6 +59,7 @@ enum PaymentMethodId {
     StripeV3 = 'stripev3',
     StripeUPE = 'stripeupe',
     WorldpayAccess = 'worldpayaccess',
+    WorldpayAccessGooglePay = 'googlepayworldpayaccess',
     Zip = 'zip',
 }
 

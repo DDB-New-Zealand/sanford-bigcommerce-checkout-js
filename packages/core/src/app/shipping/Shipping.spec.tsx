@@ -8,15 +8,16 @@ import {
 import { mount, ReactWrapper } from 'enzyme';
 import React, { FunctionComponent } from 'react';
 
+import { createLocaleContext, LocaleContext, LocaleContextType } from '@bigcommerce/checkout/locale';
+import { CheckoutProvider } from '@bigcommerce/checkout/payment-integration-api';
+
 import { getAddressFormFields } from '../address/formField.mock';
 import { getCart } from '../cart/carts.mock';
 import { getPhysicalItem } from '../cart/lineItem.mock';
-import { CheckoutProvider } from '../checkout';
 import { getCheckout } from '../checkout/checkouts.mock';
 import CheckoutStepType from '../checkout/CheckoutStepType';
 import { getStoreConfig } from '../config/config.mock';
 import { getCustomer } from '../customer/customers.mock';
-import { createLocaleContext, LocaleContext, LocaleContextType } from '../locale';
 import { PaymentMethodId } from '../payment/paymentMethod';
 
 import { getConsignment } from './consignment.mock';

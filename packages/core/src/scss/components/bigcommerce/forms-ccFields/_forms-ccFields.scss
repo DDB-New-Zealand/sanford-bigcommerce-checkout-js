@@ -15,6 +15,17 @@
     padding: 0 spacing("half");
 }
 
+.form-ccFields--without-card-name:not(.form-ccFields--without-card-code) {
+    .form-field--ccNumber {
+        flex-basis: 100%;
+    }
+
+    .form-field--ccExpiry,
+    .form-ccFields-field--ccCvv {
+        flex-basis: 50%;
+    }
+}
+
 .form-field--ccNumber,
 .form-field--ccName {
     flex-basis: 65%;
@@ -87,4 +98,22 @@
 
 .form-field--setAsDefaultInstrument {
     order: 7;
+}
+
+#paypalcommercecreditcards-ccNumber,
+#paypalcommercecreditcards-ccExpiry,
+#paypalcommercecreditcards-ccName,
+#paypalcommercecreditcards-ccCvv,
+#bigcommerce_payments_creditcards-ccNumber,
+#bigcommerce_payments_creditcards-ccExpiry,
+#bigcommerce_payments_creditcards-ccName,
+#bigcommerce_payments_creditcards-ccCvv {
+  height: spacing("double") + spacing("third"); // should be 45px
+  overflow: hidden;
+
+  & > div {
+    top: spacing("quarter") * -1; // should be around 5px
+    left: spacing("quarter") * -1; // should be around 5px
+    width: calc(100% + $spacing-half); // should be around 100% of parent + 5px * 2
+  }
 }

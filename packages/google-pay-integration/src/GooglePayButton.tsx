@@ -1,13 +1,31 @@
-import React, { FunctionComponent } from 'react';
+import {
+    createGooglePayAdyenV2CustomerStrategy,
+    createGooglePayAdyenV3CustomerStrategy,
+    createGooglePayAuthorizeDotNetCustomerStrategy,
+    createGooglePayBigCommercePaymentsCustomerStrategy,
+    createGooglePayBnzCustomerStrategy,
+    createGooglePayBraintreeCustomerStrategy,
+    createGooglePayCheckoutComCustomerStrategy,
+    createGooglePayCybersourceCustomerStrategy,
+    createGooglePayOrbitalCustomerStrategy,
+    createGooglePayPayPalCommerceCustomerStrategy,
+    createGooglePayStripeCustomerStrategy,
+    createGooglePayStripeUpeCustomerStrategy,
+    createGooglePayTdOnlineMartCustomerStrategy,
+    createGooglePayWorldpayAccessCustomerStrategy,
+} from '@bigcommerce/checkout-sdk/integrations/google-pay';
+import React, { type FunctionComponent } from 'react';
 
 import { CheckoutButton } from '@bigcommerce/checkout/checkout-button-integration';
 import {
-    CheckoutButtonProps,
-    CheckoutButtonResolveId,
+    type CheckoutButtonProps,
+    type CheckoutButtonResolveId,
     EmbeddedCheckoutUnsupportedError,
     isEmbedded,
     toResolvableComponent,
 } from '@bigcommerce/checkout/payment-integration-api';
+
+import './GooglePayButton.scss';
 
 const GooglePayButton: FunctionComponent<CheckoutButtonProps> = (props) => {
     const { language, onUnhandledError } = props;
@@ -24,7 +42,30 @@ const GooglePayButton: FunctionComponent<CheckoutButtonProps> = (props) => {
         return null;
     }
 
-    return <CheckoutButton {...props} />;
+    const integrations = [
+        createGooglePayAdyenV2CustomerStrategy,
+        createGooglePayAdyenV3CustomerStrategy,
+        createGooglePayAuthorizeDotNetCustomerStrategy,
+        createGooglePayCheckoutComCustomerStrategy,
+        createGooglePayCybersourceCustomerStrategy,
+        createGooglePayBnzCustomerStrategy,
+        createGooglePayOrbitalCustomerStrategy,
+        createGooglePayStripeCustomerStrategy,
+        createGooglePayStripeUpeCustomerStrategy,
+        createGooglePayWorldpayAccessCustomerStrategy,
+        createGooglePayBraintreeCustomerStrategy,
+        createGooglePayPayPalCommerceCustomerStrategy,
+        createGooglePayBigCommercePaymentsCustomerStrategy,
+        createGooglePayTdOnlineMartCustomerStrategy,
+    ];
+
+    return (
+        <CheckoutButton
+            checkoutButtonContainerClass="google-pay-top-button"
+            integrations={integrations}
+            {...props}
+        />
+    );
 };
 
 export default toResolvableComponent<CheckoutButtonProps, CheckoutButtonResolveId>(
@@ -35,11 +76,14 @@ export default toResolvableComponent<CheckoutButtonProps, CheckoutButtonResolveI
         { id: 'googlepayauthorizenet' },
         { id: 'googlepaybnz' },
         { id: 'googlepaybraintree' },
+        { id: 'googlepaypaypalcommerce' },
         { id: 'googlepaycheckoutcom' },
         { id: 'googlepaycybersourcev2' },
         { id: 'googlepayorbital' },
         { id: 'googlepaystripe' },
         { id: 'googlepaystripeupe' },
         { id: 'googlepayworldpayaccess' },
+        { id: 'googlepaytdonlinemart' },
+        { id: 'googlepaystripeocs' },
     ],
 );

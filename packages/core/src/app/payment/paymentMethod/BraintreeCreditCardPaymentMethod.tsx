@@ -1,8 +1,9 @@
+import { createBraintreeCreditCardPaymentStrategy } from '@bigcommerce/checkout-sdk/integrations/braintree';
 import { noop } from 'lodash';
 import React, {
     createRef,
-    FunctionComponent,
-    RefObject,
+    type FunctionComponent,
+    type RefObject,
     useCallback,
     useRef,
     useState,
@@ -13,10 +14,10 @@ import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { Modal } from '../../ui/modal';
 import {
     withHostedCreditCardFieldset,
-    WithInjectedHostedCreditCardFieldsetProps,
+    type WithInjectedHostedCreditCardFieldsetProps,
 } from '../hostedCreditCard';
 
-import CreditCardPaymentMethod, { CreditCardPaymentMethodProps } from './CreditCardPaymentMethod';
+import CreditCardPaymentMethod, { type CreditCardPaymentMethodProps } from './CreditCardPaymentMethod';
 
 export type BraintreeCreditCardPaymentMethodProps = CreditCardPaymentMethodProps;
 
@@ -47,9 +48,10 @@ const BraintreeCreditCardPaymentMethod: FunctionComponent<
             async (options, selectedInstrument) => {
                 return initializePayment({
                     ...options,
+                    integrations: [createBraintreeCreditCardPaymentStrategy],
                     braintree: {
                         threeDSecure: {
-                            addFrame(error, content, cancel) {
+                            addFrame(error: Error | undefined, content: HTMLIFrameElement, cancel: () => Promise<{ nonce: string }> | undefined) {
                                 if (error) {
                                     return onUnhandledError(error);
                                 }
@@ -94,6 +96,7 @@ const BraintreeCreditCardPaymentMethod: FunctionComponent<
                 cardValidationSchema={hostedValidationSchema}
                 getStoredCardValidationFieldset={getHostedStoredCardValidationFieldset}
                 initializePayment={initializeBraintreePayment}
+                onUnhandledError={onUnhandledError}
                 storedCardValidationSchema={hostedStoredCardValidationSchema}
             />
 

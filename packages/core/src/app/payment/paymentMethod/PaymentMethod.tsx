@@ -1,50 +1,26 @@
 import {
-    CheckoutSelectors,
-    CustomerInitializeOptions,
-    CustomerRequestOptions,
-    PaymentInitializeOptions,
-    PaymentMethod,
-    PaymentRequestOptions,
+    type CheckoutSelectors,
+    type CustomerInitializeOptions,
+    type CustomerRequestOptions,
+    type PaymentInitializeOptions,
+    type PaymentMethod,
+    type PaymentRequestOptions,
 } from '@bigcommerce/checkout-sdk';
-import React, { FunctionComponent, memo } from 'react';
+import { createNoPaymentStrategy, } from '@bigcommerce/checkout-sdk/integrations/no-payment';
+import React, { type FunctionComponent, lazy, memo, Suspense } from 'react';
 
-import { CheckoutContextProps } from '@bigcommerce/checkout/payment-integration-api';
+import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
+import { CaptureMessageComponent } from '@bigcommerce/checkout/payment-integration-api';
 
 import { withCheckout } from '../../checkout';
 
-import AdyenV2PaymentMethod from './AdyenV2PaymentMethod';
-import AdyenV3PaymentMethod from './AdyenV3PaymentMethod';
-import AffirmPaymentMethod from './AffirmPaymentMethod';
-import AmazonPayV2PaymentMethod from './AmazonPayV2PaymentMethod';
-import BarclaycardPaymentMethod from './BarclaycardPaymentMethod';
-import BlueSnapV2PaymentMethod from './BlueSnapV2PaymentMethod';
-import BoltPaymentMethod from './BoltPaymentMethod';
-import BraintreeCreditCardPaymentMethod from './BraintreeCreditCardPaymentMethod';
-import CCAvenueMarsPaymentMethod from './CCAvenueMarsPaymentMethod';
-import ChasePayPaymentMethod from './ChasePayPaymentMethod';
-import CheckoutCustomPaymentMethod from './CheckoutcomCustomPaymentMethod';
-import DigitalRiverPaymentMethod from './DigitalRiverPaymentMethod';
-import GooglePayPaymentMethod from './GooglePayPaymentMethod';
-import HostedCreditCardPaymentMethod from './HostedCreditCardPaymentMethod';
-import HostedPaymentMethod from './HostedPaymentMethod';
-import KlarnaPaymentMethod from './KlarnaPaymentMethod';
-import KlarnaV2PaymentMethod from './KlarnaV2PaymentMethod';
-import MasterpassPaymentMethod from './MasterpassPaymentMethod';
-import MolliePaymentMethod from './MolliePaymentMethod';
-import MonerisPaymentMethod from './MonerisPaymentMethod';
-import OpyPaymentMethod from './OpyPaymentMethod';
+const BraintreeCreditCardPaymentMethod = lazy(() => import(/* webpackChunkName: "braintree-credit-card-payment-method" */'./BraintreeCreditCardPaymentMethod'));
+const HostedCreditCardPaymentMethod = lazy(() => import(/* webpackChunkName: "hosted-credit-card-payment-method" */'./HostedCreditCardPaymentMethod'));
+const HostedPaymentMethod = lazy(() => import(/* webpackChunkName: "hosted-payment-method" */'./HostedPaymentMethod'));
+
 import PaymentMethodId from './PaymentMethodId';
 import PaymentMethodProviderType from './PaymentMethodProviderType';
 import PaymentMethodType from './PaymentMethodType';
-import PaypalCommerceCreditCardPaymentMethod from './PaypalCommerceCreditCardPaymentMethod';
-import PaypalExpressPaymentMethod from './PaypalExpressPaymentMethod';
-import PaypalPaymentsProPaymentMethod from './PaypalPaymentsProPaymentMethod';
-import PPSDKPaymentMethod from './PPSDKPaymentMethod';
-import SquarePaymentMethod from './SquarePaymentMethod';
-import StripePaymentMethod from './StripePaymentMethod';
-import StripeUPEPaymentMethod from './StripeUPEPaymentMethod';
-import VisaCheckoutPaymentMethod from './VisaCheckoutPaymentMethod';
-import WorldpayCreditCardPaymentMethod from './WorldpayCreditCardPaymentMethod';
 
 export interface PaymentMethodProps {
     method: PaymentMethod;
@@ -71,168 +47,43 @@ export interface WithCheckoutPaymentMethodProps {
  * the purpose of configuring a general-purpose component in order to fulfill
  * its specific product or technical requirements.
  */
-// tslint:disable:cyclomatic-complexity
 const PaymentMethodComponent: FunctionComponent<
     PaymentMethodProps & WithCheckoutPaymentMethodProps
 > = (props) => {
     const { method } = props;
 
-    if (method.type === PaymentMethodProviderType.PPSDK) {
-        return <PPSDKPaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.AdyenV2) {
-        return <AdyenV2PaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.AdyenV3) {
-        return <AdyenV3PaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.SquareV2) {
-        return <SquarePaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.StripeV3) {
-        return <StripePaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.StripeUPE) {
-        return <StripeUPEPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.AmazonPay) {
-        return <AmazonPayV2PaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.Affirm) {
-        return <AffirmPaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.BlueSnapV2) {
-        return <BlueSnapV2PaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.DigitalRiver) {
-        return <DigitalRiverPaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.Klarna) {
-        return <KlarnaV2PaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.Klarna) {
-        return <KlarnaPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.CCAvenueMars) {
-        return <CCAvenueMarsPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.ChasePay) {
-        return <ChasePayPaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.Checkoutcom) {
-        if (method.id === 'credit_card' || method.id === 'card') {
-            return <HostedCreditCardPaymentMethod {...props} />;
-        }
-
-        if (
-            method.id === PaymentMethodId.Boleto ||
-            method.id === PaymentMethodId.Ideal ||
-            method.id === PaymentMethodId.Fawry ||
-            method.id === PaymentMethodId.Oxxo ||
-            method.id === PaymentMethodId.Qpay ||
-            method.id === PaymentMethodId.Sepa
-        ) {
-            return <CheckoutCustomPaymentMethod checkoutCustomMethod={method.id} {...props} />;
-        }
-
-        return <HostedPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.BraintreeVisaCheckout) {
-        return <VisaCheckoutPaymentMethod {...props} />;
-    }
-
-    if (
-        method.id === PaymentMethodId.AdyenV2GooglePay ||
-        method.id === PaymentMethodId.AdyenV3GooglePay ||
-        method.id === PaymentMethodId.AuthorizeNetGooglePay ||
-        method.id === PaymentMethodId.BNZGooglePay ||
-        method.id === PaymentMethodId.BraintreeGooglePay ||
-        method.id === PaymentMethodId.CheckoutcomGooglePay ||
-        method.id === PaymentMethodId.CybersourceV2GooglePay ||
-        method.id === PaymentMethodId.OrbitalGooglePay ||
-        method.id === PaymentMethodId.StripeGooglePay ||
-        method.id === PaymentMethodId.StripeUPEGooglePay ||
-        method.id === PaymentMethodId.WorldpayAccessGooglePay
-    ) {
-        return <GooglePayPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.Masterpass) {
-        return <MasterpassPaymentMethod {...props} />;
-    }
-
     if (method.id === PaymentMethodId.Braintree) {
-        return <BraintreeCreditCardPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.PaypalCommerceCreditCards) {
-        return <PaypalCommerceCreditCardPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.PaypalExpress) {
-        return <PaypalExpressPaymentMethod {...props} />;
+        return <Suspense><BraintreeCreditCardPaymentMethod {...props} /></Suspense>;
     }
 
     if (
-        method.type !== PaymentMethodProviderType.Hosted &&
-        method.id === PaymentMethodId.PaypalPaymentsPro
-    ) {
-        return <PaypalPaymentsProPaymentMethod {...props} />;
-    }
-
-    if (method.gateway === PaymentMethodId.Barclaycard) {
-        return <BarclaycardPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.Bolt) {
-        return <BoltPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.Moneris) {
-        return <MonerisPaymentMethod {...props} />;
-    }
-
-    if (method.id === PaymentMethodId.WorldpayAccess) {
-        return <WorldpayCreditCardPaymentMethod {...props} />;
-    }
-
-    if (
-        method.gateway === PaymentMethodId.Afterpay ||
-        method.gateway === PaymentMethodId.Clearpay ||
-        method.id === PaymentMethodId.BraintreeVenmo ||
         method.id === PaymentMethodId.Humm ||
         method.id === PaymentMethodId.Laybuy ||
-        method.id === PaymentMethodId.Quadpay ||
-        method.id === PaymentMethodId.Sezzle ||
-        method.id === PaymentMethodId.Zip ||
         method.method === PaymentMethodType.Paypal ||
         method.method === PaymentMethodType.PaypalCredit ||
         method.type === PaymentMethodProviderType.Hosted
     ) {
-        return <HostedPaymentMethod {...props} />;
-    }
+        const knownMethods = [
+            { id: "braintreepaypalcredit", gateway: null, method: "paypal-credit", type: PaymentMethodProviderType.Api },
+        ];
 
-    if (method.id === PaymentMethodId.Opy) {
-        return <OpyPaymentMethod {...props} />;
-    }
+        let sentryMessage: string;
 
-    if (method.gateway === PaymentMethodId.Mollie) {
-        return <MolliePaymentMethod {...props} />;
+        if (knownMethods.some(knownMethod =>
+            knownMethod.id === method.id &&
+            knownMethod.gateway === method.gateway &&
+            knownMethod.method === method.method &&
+            knownMethod.type === method.type
+        )) {
+            sentryMessage = '';
+        }else {
+            sentryMessage = `DataHostedPaymentMethod ${JSON.stringify(method)}`;
+        }
+
+        return <>
+                <CaptureMessageComponent message={sentryMessage} />
+                <Suspense><HostedPaymentMethod {...props} /></Suspense>
+            </>;
     }
 
     // NOTE: Some payment methods have `method` as `credit-card` but they are
@@ -242,7 +93,54 @@ const PaymentMethodComponent: FunctionComponent<
         method.method === PaymentMethodType.CreditCard ||
         method.type === PaymentMethodProviderType.Api
     ) {
-        return <HostedCreditCardPaymentMethod {...props} />;
+        const knownMethods = [
+            { id: 'authorizenet', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'clover', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'cba_mpgs', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'cybersourcev2', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'ewayrapid', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'hps', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'nmi', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'quickbooks', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'sagepay', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'stripe', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'usaepay', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'vantiv', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'orbital', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'elavon', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'firstdatae4v14', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'cybersource', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'migs', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'vantivcore', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'bnz', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'shopkeep', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'paymetric', gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: 'googlepay', gateway: null, method: PaymentMethodType.GooglePay, type: PaymentMethodProviderType.Api },
+            { id: "eway", gateway:null, method:PaymentMethodType.CreditCard, type:PaymentMethodProviderType.Api },
+            { id: "wepay", gateway: null, method: PaymentMethodType.CreditCard, type: PaymentMethodProviderType.Api },
+            { id: "stripev3", gateway: null, method: "multi-option", type: PaymentMethodProviderType.Api },
+            { id: 'bigpaypay', gateway: null, method: 'zzzblackhole', type: PaymentMethodProviderType.Api },
+            { id: 'testgateway', gateway: null, method: 'zzzblackhole', type: PaymentMethodProviderType.Api },
+            { id: 'afterpay', gateway: null, method: 'pay_by_installment', type: PaymentMethodProviderType.Api },
+        ];
+
+        let sentryMessage: string;
+
+        if (knownMethods.some(knownMethod =>
+            knownMethod.id === method.id &&
+            knownMethod.gateway === method.gateway &&
+            knownMethod.method === method.method &&
+            knownMethod.type === method.type
+        )) {
+            sentryMessage = '';
+        }else {
+            sentryMessage = `DataHostedCreditCardPaymentMethodUpdated ${JSON.stringify(method)}`;
+        }
+
+        return <>
+                <CaptureMessageComponent message={sentryMessage} />
+                <Suspense><HostedCreditCardPaymentMethod {...props} /></Suspense>
+            </>;
     }
 
     return null;
@@ -260,7 +158,17 @@ function mapToWithCheckoutPaymentMethodProps(
         deinitializeCustomer: checkoutService.deinitializeCustomer,
         deinitializePayment: checkoutService.deinitializePayment,
         initializeCustomer: checkoutService.initializeCustomer,
-        initializePayment: checkoutService.initializePayment,
+        initializePayment: (options) => {
+            return checkoutService.initializePayment({
+                ...options,
+                integrations: [
+                    ...options.integrations ?? [],
+                    // The strategies below don’t appear to correspond to any existing component,
+                    // so they are initialized globally at the root level.
+                    createNoPaymentStrategy,
+                ],
+            });
+        },
         isInitializing: isInitializingPayment(method.id),
     };
 }

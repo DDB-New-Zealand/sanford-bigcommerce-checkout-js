@@ -1,7 +1,5 @@
-import { CheckoutContext, CheckoutContextProps } from '@bigcommerce/checkout/payment-integration-api';
-
-import { createMappableInjectHoc } from '../common/hoc';
-
+import { CheckoutContext, type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
+import { createMappableInjectHoc } from '@bigcommerce/checkout/legacy-hoc';
 
 export type WithCheckoutProps = CheckoutContextProps;
 

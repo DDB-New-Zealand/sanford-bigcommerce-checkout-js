@@ -1,22 +1,37 @@
-import { CheckoutPageNodeObject } from '@bigcommerce/checkout/test-framework';
 import {
-    CheckoutService,
+    type CheckoutService,
     createCheckoutService,
     createEmbeddedCheckoutMessenger,
-    EmbeddedCheckoutMessenger,
+    type EmbeddedCheckoutMessenger,
 } from '@bigcommerce/checkout-sdk';
-import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { noop } from 'lodash';
-import React, { FunctionComponent } from 'react';
+import React, { act, type FunctionComponent } from 'react';
 
+import { ExtensionService } from '@bigcommerce/checkout/checkout-extension';
 import {
-    AnalyticsContextProps,
-    AnalyticsEvents,
+    type AnalyticsContextProps,
+    type AnalyticsEvents,
     AnalyticsProviderMock,
-} from '@bigcommerce/checkout/analytics';
-import { getLanguageService, LocaleProvider } from '@bigcommerce/checkout/locale';
-import { CHECKOUT_ROOT_NODE_ID, CheckoutProvider } from '@bigcommerce/checkout/payment-integration-api';
+    CheckoutProvider,
+    ExtensionProvider,
+    type ExtensionServiceInterface,
+    LocaleProvider,
+    ThemeProvider,
+} from '@bigcommerce/checkout/contexts';
+import { getLanguageService } from '@bigcommerce/checkout/locale';
+import {
+    CHECKOUT_ROOT_NODE_ID,
+} from '@bigcommerce/checkout/payment-integration-api';
+import {
+    CheckoutPageNodeObject,
+    CheckoutPreset,
+    checkoutWithBillingEmail,
+    checkoutWithShippingDiscount,
+    consignmentAutomaticDiscount,
+    consignmentCouponDiscount,
+} from '@bigcommerce/checkout/test-framework';
+import { renderWithoutWrapper as render, screen, waitFor } from '@bigcommerce/checkout/test-utils';
 
 import { createErrorLogger } from '../common/error';
 import {
@@ -24,15 +39,16 @@ import {
     createEmbeddedCheckoutSupport,
 } from '../embeddedCheckout';
 
-import Checkout, { CheckoutProps } from './Checkout';
+import Checkout, { type CheckoutProps } from './Checkout';
 
 describe('Checkout', () => {
     let checkout: CheckoutPageNodeObject;
     let CheckoutTest: FunctionComponent<CheckoutProps>;
     let checkoutService: CheckoutService;
+    let extensionService: ExtensionServiceInterface;
     let defaultProps: CheckoutProps & AnalyticsContextProps;
     let embeddedMessengerMock: EmbeddedCheckoutMessenger;
-    let analyticsTracker: Partial<AnalyticsEvents>;
+    let analyticsTracker: AnalyticsEvents;
 
     beforeAll(() => {
         checkout = new CheckoutPageNodeObject();
@@ -51,14 +67,26 @@ describe('Checkout', () => {
         window.scrollTo = jest.fn();
 
         checkoutService = createCheckoutService();
+        extensionService = new ExtensionService(checkoutService, createErrorLogger());
         embeddedMessengerMock = createEmbeddedCheckoutMessenger({
             parentOrigin: 'https://store.url',
         });
         analyticsTracker = {
             checkoutBegin: jest.fn(),
-            trackStepViewed: jest.fn(),
             trackStepCompleted: jest.fn(),
+            trackStepViewed: jest.fn(),
+            orderPurchased: jest.fn(),
+            customerEmailEntry: jest.fn(),
+            customerSuggestionInit: jest.fn(),
+            customerSuggestionExecute: jest.fn(),
+            customerPaymentMethodExecuted: jest.fn(),
+            showShippingMethods: jest.fn(),
+            selectedPaymentMethod: jest.fn(),
+            clickPayButton: jest.fn(),
+            paymentRejected: jest.fn(),
+            paymentComplete: jest.fn(),
             exitCheckout: jest.fn(),
+            walletButtonClick: jest.fn(),
         };
         defaultProps = {
             checkoutId: 'x',
@@ -74,9 +102,13 @@ describe('Checkout', () => {
 
         CheckoutTest = (props) => (
             <CheckoutProvider checkoutService={checkoutService}>
-                <LocaleProvider checkoutService={checkoutService}>
+                <LocaleProvider checkoutService={checkoutService} languageService={getLanguageService()}>
                     <AnalyticsProviderMock>
-                        <Checkout {...props} />
+                        <ExtensionProvider extensionService={extensionService}>
+                            <ThemeProvider>
+                                <Checkout {...props} />
+                            </ThemeProvider>
+                        </ExtensionProvider>
                     </AnalyticsProviderMock>
                 </LocaleProvider>
             </CheckoutProvider>
@@ -111,20 +143,30 @@ describe('Checkout', () => {
             expect(defaultProps.embeddedStylesheet.append).toHaveBeenCalledWith(styles);
         });
 
+        it('render component with proper id', async () => {
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForCustomerStep();
+
+            const wrapper = screen.getByTestId('checkout-page-container');
+
+            expect(wrapper).toBeInTheDocument();
+        });
+
         it('renders list of promotion banners', async () => {
-            checkout.use('CartWithPromotions');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithPromotions);
 
             render(<CheckoutTest {...defaultProps} />);
 
             await checkout.waitForCustomerStep();
 
-            expect(screen.queryAllByRole('alert')).toHaveLength(2);
+            expect(screen.getAllByTestId('promotion-banner-message')).toHaveLength(2);
             expect(screen.getByText('You are eligible for a discount')).toBeInTheDocument();
             expect(screen.getByText('Get a discount if you order more')).toBeInTheDocument();
         });
 
         it('renders modal error when theres an error flash message', async () => {
-            checkout.use('ErrorFlashMessage');
+            checkoutService = checkout.use(CheckoutPreset.ErrorFlashMessage);
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -134,7 +176,7 @@ describe('Checkout', () => {
         });
 
         it('renders modal error when theres an custom error flash message', async () => {
-            checkout.use('CustomErrorFlashMessage');
+            checkoutService = checkout.use(CheckoutPreset.CustomErrorFlashMessage);
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -145,7 +187,7 @@ describe('Checkout', () => {
         });
 
         it('does not render shipping checkout step if not required', async () => {
-            checkout.use('CartWithoutPhysicalItem');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithDigitalCart);
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -163,7 +205,7 @@ describe('Checkout', () => {
         });
 
         it('tracks a step viewed when a step is expanded', async () => {
-            checkout.use('CartWithShippingAddress');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping);
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -176,6 +218,76 @@ describe('Checkout', () => {
             await checkout.waitForShippingStep();
 
             expect(analyticsTracker.trackStepViewed).toHaveBeenCalledWith('shipping');
+        });
+    });
+
+    describe('prerendering analytics', () => {
+        let originalPrerendering: boolean | undefined;
+        let mockAddEventListener: jest.SpyInstance;
+
+        beforeEach(() => {
+            originalPrerendering = (document as any).prerendering;
+            mockAddEventListener = jest.spyOn(document, 'addEventListener');
+        });
+
+        afterEach(() => {
+            (document as any).prerendering = originalPrerendering;
+            mockAddEventListener.mockRestore();
+        });
+
+        it('calls checkoutBegin immediately when not prerendering', async () => {
+            (document as any).prerendering = false;
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForCustomerStep();
+
+            expect(analyticsTracker.checkoutBegin).toHaveBeenCalled();
+            expect(mockAddEventListener).not.toHaveBeenCalledWith(
+                'prerenderingchange',
+                expect.any(Function),
+                { once: true }
+            );
+        });
+
+        it('adds prerenderingchange event listener when prerendering', async () => {
+            (document as any).prerendering = true;
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForCustomerStep();
+
+            expect(analyticsTracker.checkoutBegin).not.toHaveBeenCalled();
+            expect(mockAddEventListener).toHaveBeenCalledWith(
+                'prerenderingchange',
+                expect.any(Function),
+                { once: true }
+            );
+        });
+
+        it('calls checkoutBegin when prerenderingchange event fires', async () => {
+            (document as any).prerendering = true;
+
+            let eventHandler: () => void;
+
+            mockAddEventListener.mockImplementation((event, handler) => {
+                if (event === 'prerenderingchange') {
+                    eventHandler = handler;
+                }
+            });
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForCustomerStep();
+
+            expect(analyticsTracker.checkoutBegin).not.toHaveBeenCalled();
+
+            // Simulate the prerenderingchange event
+            act(() => {
+                eventHandler();
+            });
+
+            expect(analyticsTracker.checkoutBegin).toHaveBeenCalled();
         });
     });
 
@@ -194,43 +306,47 @@ describe('Checkout', () => {
 
             await checkout.waitForCustomerStep();
 
-            await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
-            await userEvent.click(screen.getByText('Continue'));
-
-            await screen.findByText('test@example.com');
+            await act(async () => {
+                await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
+                await userEvent.click(screen.getByText('Continue'));
+            });
 
             expect(analyticsTracker.trackStepCompleted).toHaveBeenCalledWith('customer');
         });
 
         it('navigates to next step when shopper continues as guest', async () => {
-            render(<CheckoutTest {...defaultProps} />);
+            render(<CheckoutTest {...defaultProps} />, { legacyRoot: true });
 
             await checkout.waitForCustomerStep();
 
-            await userEvent.type(await screen.findByLabelText('Email'), 'test@example.com');
-            await userEvent.click(await screen.findByText('Continue'));
+            await act(async () => {
+                await userEvent.type(await screen.findByLabelText('Email'), 'test@example.com');
+                await userEvent.click(await screen.findByText('Continue'));
+            });
 
             await screen.findByText('test@example.com');
 
             expect(screen.getByText('test@example.com')).toBeInTheDocument();
         });
 
-        it('logs unhandled error', async () => {
-            checkout.use('UnsupportedProvider');
+        it('renders checkout button container with ApplePay', async () => {
+            (window as any).ApplePaySession = {};
+
+            checkoutService = checkout.use(CheckoutPreset.RemoteProviders, {
+                checkout: checkoutWithBillingEmail,
+            });
 
             render(<CheckoutTest {...defaultProps} />);
 
-            await checkout.waitForCustomerStep();
+            await checkout.waitForShippingStep();
 
-            const error = new Error('Apple pay is not supported');
-
-            expect(defaultProps.errorLogger.log).toHaveBeenCalledWith(error);
+            expect(screen.getByText('Check out faster with:')).toBeInTheDocument();
         });
     });
 
     describe('shipping step', () => {
         it('renders shipping component when shipping step is active', async () => {
-            checkout.use('CartWithBillingEmail');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithBillingEmail);
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -244,14 +360,28 @@ describe('Checkout', () => {
             expect(screen.getByText(/shipping method/i)).toBeInTheDocument();
         });
 
+        it('renders custom shipping method and locks shipping component', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithCustomShippingAndBilling);
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForPaymentStep();
+
+            expect(screen.getByText('Manual Order Custom Shipping Method')).toBeInTheDocument();
+            expect(screen.getAllByRole('button', { name: 'Edit' })).toHaveLength(2);
+            expect(screen.getByText(/test payment provider/i)).toBeInTheDocument();
+            expect(screen.getByRole('radio', { name: /pay in store/i })).toBeInTheDocument();
+            expect(screen.getByText(/place order/i)).toBeInTheDocument();
+        });
+
         it('logs unhandled error', async () => {
             const error = new Error();
+
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithBillingEmail);
 
             jest.spyOn(checkoutService, 'loadShippingAddressFields').mockImplementation(() => {
                 throw error;
             });
-
-            checkout.use('CartWithBillingEmail');
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -263,7 +393,7 @@ describe('Checkout', () => {
 
     describe('billing step', () => {
         it('renders billing component when billing step is active', async () => {
-            checkout.use('CartWithShippingAddress');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping);
 
             render(<CheckoutTest {...defaultProps} />);
 
@@ -278,54 +408,171 @@ describe('Checkout', () => {
         });
 
         it('renders shipping component with summary data', async () => {
-            checkout.use('CartWithShippingAddress');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping);
 
             render(<CheckoutTest {...defaultProps} />);
 
             await checkout.waitForBillingStep();
 
-            expect(screen.getByText(/new south wales,/i)).toBeInTheDocument();
+            expect(screen.getByText(/111 Testing Rd/i)).toBeInTheDocument();
+            expect(screen.getByText(/Cityville/i)).toBeInTheDocument();
             expect(screen.getByText(/pickup in store/i)).toBeInTheDocument();
+        });
+
+        it('renders shipping summary with shipping discount', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping, {
+                checkout: checkoutWithShippingDiscount,
+            });
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForBillingStep();
+
+            const shippingOptionsInShippingSummary = screen.getByTestId('static-shipping-option');
+
+            expect(shippingOptionsInShippingSummary).toHaveTextContent('Pickup In Store');
+            expect(shippingOptionsInShippingSummary).toHaveTextContent('$3.00');
+            expect(shippingOptionsInShippingSummary).toHaveTextContent('$1.00');
+
+            const shippingCostInOrderSummary = screen.getByTestId('cart-shipping');
+
+            expect(shippingCostInOrderSummary).toHaveTextContent('Shipping');
+            expect(shippingCostInOrderSummary).toHaveTextContent('$3.00');
+            expect(shippingCostInOrderSummary).toHaveTextContent('$1.00');
+
+            const couponDetailInOrderSummary = screen.getByTestId('cart-coupon');
+
+            expect(couponDetailInOrderSummary).toHaveTextContent('TEST-SHIPPING-DISCOUNT-CODE');
+            expect(couponDetailInOrderSummary).toHaveTextContent('$3.00');
+        });
+
+        it('renders shipping summary with 100% off shipping discount', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping, {
+                checkout: {
+                    ...checkoutWithShippingDiscount,
+                    consignments: [{
+                        ...checkoutWithShippingDiscount.consignments[0],
+                        discounts: [
+                            { ...consignmentAutomaticDiscount, amount: 3 }
+                        ]
+                    }],
+                    coupons: [],
+                },
+            });
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForBillingStep();
+
+            const shippingOptionsInShippingSummary = screen.getByTestId('static-shipping-option');
+
+            expect(shippingOptionsInShippingSummary).toHaveTextContent('Pickup In Store');
+            expect(shippingOptionsInShippingSummary).toHaveTextContent('$3.00');
+            expect(shippingOptionsInShippingSummary).toHaveTextContent('$0.00');
+
+            const shippingCostInOrderSummary = screen.getByTestId('cart-shipping');
+
+            expect(shippingCostInOrderSummary).toHaveTextContent('Shipping');
+            expect(shippingCostInOrderSummary).toHaveTextContent('$3.00');
+            expect(shippingCostInOrderSummary).toHaveTextContent('Free');
+        });
+
+        it('renders multi-shipping summary with shipping discount', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithMultiShippingCart, {
+                checkout: {
+                    ...checkoutWithShippingDiscount,
+                    shippingCostBeforeDiscount: 6,
+                    consignments: [
+                        checkoutWithShippingDiscount.consignments[0],
+                        {
+                            ...checkoutWithShippingDiscount.consignments[0],
+                            id: 'consignment-2',
+                            discounts: [
+                                { ...consignmentAutomaticDiscount, amount: 3 },
+                                { ...consignmentCouponDiscount, amount: 1 },
+                            ]
+                        }
+                    ],
+                    coupons: [{
+                        ...checkoutWithShippingDiscount.coupons[0],
+                        discountedAmount: 4,
+                    }]
+                },
+            });
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForBillingStep();
+
+            const shippingOptionsInShippingSummary = screen.getAllByTestId('static-shipping-option');
+
+            expect(shippingOptionsInShippingSummary).toHaveLength(2);
+            expect(shippingOptionsInShippingSummary[0]).toHaveTextContent('Pickup In Store');
+            expect(shippingOptionsInShippingSummary[0]).toHaveTextContent('$3.00');
+            expect(shippingOptionsInShippingSummary[0]).toHaveTextContent('$1.00');
+
+            expect(shippingOptionsInShippingSummary[1]).toHaveTextContent('Pickup In Store');
+            expect(shippingOptionsInShippingSummary[1]).toHaveTextContent('$0.00');
+            expect(shippingOptionsInShippingSummary[1]).toHaveTextContent('$3.00');
+
+            const shippingCostInOrderSummary = screen.getByTestId('cart-shipping');
+
+            expect(shippingCostInOrderSummary).toHaveTextContent('Shipping');
+            expect(shippingCostInOrderSummary).toHaveTextContent('$6.00');
+            expect(shippingCostInOrderSummary).toHaveTextContent('$1.00');
+
+            const couponDetailInOrderSummary = screen.getByTestId('cart-coupon');
+
+            expect(couponDetailInOrderSummary).toHaveTextContent('TEST-SHIPPING-DISCOUNT-CODE');
+            expect(couponDetailInOrderSummary).toHaveTextContent('$4.00');
         });
 
         it('logs unhandled error', async () => {
             const error = new Error();
 
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping);
+
             jest.spyOn(checkoutService, 'loadBillingAddressFields').mockImplementation(() => {
                 throw error;
             });
-
-            checkout.use('CartWithShippingAddress');
 
             render(<CheckoutTest {...defaultProps} />);
 
             await checkout.waitForBillingStep();
 
-            expect(defaultProps.errorLogger.log).toHaveBeenCalledWith(error);
+            await waitFor(()=>{
+                expect(defaultProps.errorLogger.log).toHaveBeenCalledWith(error);
+            });
         });
     });
 
     describe('payment step', () => {
         it('renders payment component when payment step is active', async () => {
-            checkout.use('CartWithShippingAndBilling');
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling);
 
             render(<CheckoutTest {...defaultProps} />);
 
             await checkout.waitForPaymentStep();
 
             expect(screen.getByText(/test payment provider/i)).toBeInTheDocument();
-            expect(screen.getByText(/pay in store/i)).toBeInTheDocument();
+            expect(screen.getByRole('radio', { name: /pay in store/i })).toBeInTheDocument();
             expect(screen.getByText(/place order/i)).toBeInTheDocument();
         });
 
         it('logs unhandled error', async () => {
-            checkout.use('CartWithShippingAndBilling');
+            const error = new Error();
 
-            render(<CheckoutTest {...defaultProps} />);
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling);
 
-            await checkout.waitForPaymentStep();
+            jest.spyOn(checkoutService, 'loadPaymentMethods').mockImplementation(() => {
+                throw error;
+            });
 
-            expect(defaultProps.errorLogger.log).toHaveBeenCalled();
+            render(<CheckoutTest {...defaultProps} />, { legacyRoot: true });
+
+            await waitFor(() => {
+                expect(defaultProps.errorLogger.log).toHaveBeenCalledWith(error);
+            });
         });
     });
 });

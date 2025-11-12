@@ -1,8 +1,9 @@
-import { Coupon, GiftCertificate, Tax } from '@bigcommerce/checkout-sdk';
-import React, { FunctionComponent, memo } from 'react';
+import { type Coupon, type Fee, type GiftCertificate, type OrderFee, type Tax } from '@bigcommerce/checkout-sdk';
+import React, { type FunctionComponent, memo } from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 
+import isOrderFee from "./isOrderFee";
 import OrderSummaryDiscount from './OrderSummaryDiscount';
 import OrderSummaryPrice from './OrderSummaryPrice';
 
@@ -12,9 +13,10 @@ export interface OrderSummarySubtotalsProps {
     discountAmount?: number;
     isTaxIncluded?: boolean;
     taxes?: Tax[];
+    fees?: Fee[] | OrderFee[];
     giftWrappingAmount?: number;
-    isUpdatedCartSummayModal?: boolean,
     shippingAmount?: number;
+    shippingAmountBeforeDiscount?: number;
     handlingAmount?: number;
     storeCreditAmount?: number;
     subtotalAmount: number;
@@ -27,8 +29,10 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
     isTaxIncluded,
     giftCertificates,
     taxes,
+    fees,
     giftWrappingAmount,
     shippingAmount,
+    shippingAmountBeforeDiscount,
     subtotalAmount,
     handlingAmount,
     storeCreditAmount,
@@ -86,6 +90,7 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
 
             <OrderSummaryPrice
                 amount={shippingAmount}
+                amountBeforeDiscount={shippingAmountBeforeDiscount}
                 label={<TranslatedString id="cart.shipping_text" />}
                 testId="cart-shipping"
                 zeroLabel={<TranslatedString id="cart.free_text" />}
@@ -98,6 +103,15 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                     testId="cart-handling"
                 />
             )}
+
+            {fees?.map((fee, index) => (
+                <OrderSummaryPrice
+                    amount={fee.cost}
+                    key={index}
+                    label={isOrderFee(fee) ? fee.customerDisplayName : fee.displayName}
+                    testId="cart-fees"
+                />
+            ))}
 
             {!isTaxIncluded && (taxes || []).map((tax, index) => (
                 <OrderSummaryPrice

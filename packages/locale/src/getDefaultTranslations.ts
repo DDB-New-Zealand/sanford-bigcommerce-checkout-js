@@ -1,6 +1,4 @@
-import { Translations } from '@bigcommerce/checkout-sdk';
-
-import { FALLBACK_TRANSLATIONS } from './translations';
+import { type Translations } from '@bigcommerce/checkout-sdk';
 
 const AVAILABLE_TRANSLATIONS: Record<string, () => Promise<{ default: unknown }>> = {
     es: () =>
@@ -83,7 +81,21 @@ const AVAILABLE_TRANSLATIONS: Record<string, () => Promise<{ default: unknown }>
             /* webpackChunkName: "translations-sv" */
             './translations/sv.json'
         ),
-    en: () => Promise.resolve({ default: FALLBACK_TRANSLATIONS }),
+    pl: () =>
+        import(
+            /* webpackChunkName: "translations-sv" */
+            './translations/pl.json'
+        ),
+    ja: () =>
+        import(
+            /* webpackChunkName: "translations-ja" */
+            './translations/ja.json'
+        ),
+    en: () =>
+        import(
+            /* webpackChunkName: "translations-en" */
+            './translations/en.json'
+        ),
 };
 
 export default async function getDefaultTranslations(

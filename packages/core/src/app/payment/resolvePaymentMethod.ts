@@ -1,15 +1,21 @@
-import { ComponentType } from 'react';
+import { type ComponentType } from 'react';
 
 import {
-    PaymentMethodProps,
-    PaymentMethodResolveId,
+    type PaymentMethodProps,
+    type PaymentMethodResolveId,
 } from '@bigcommerce/checkout/payment-integration-api';
 
-import { resolveComponent } from '../common/resolver';
-import * as paymentMethods from '../generated/paymentIntegrations';
+import { resolveLazyComponent } from '../common/resolver';
+import * as lazyPaymentMethods from '../generated/paymentIntegrations';
 
 export default function resolvePaymentMethod(
-    query: PaymentMethodResolveId,
+    query: PaymentMethodResolveId
 ): ComponentType<PaymentMethodProps> | undefined {
-    return resolveComponent<PaymentMethodResolveId, PaymentMethodProps>(query, paymentMethods);
+    const { ComponentRegistry, ...components } = lazyPaymentMethods;
+
+    return resolveLazyComponent<PaymentMethodResolveId, PaymentMethodProps>(
+        query, 
+        components, 
+        ComponentRegistry,
+    );
 }

@@ -1,16 +1,15 @@
 import {
-    LineItemMap,
-    ShopperCurrency as ShopperCurrencyType,
-    StoreCurrency,
+    type LineItemMap,
+    type ShopperCurrency as ShopperCurrencyType,
+    type StoreCurrency,
 } from '@bigcommerce/checkout-sdk';
-import React, { cloneElement, FunctionComponent, isValidElement, ReactNode } from 'react';
+import React, { cloneElement, type FunctionComponent, isValidElement, type ReactNode } from 'react';
 
+import { preventDefault } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { Button, IconCloseWithBorder } from '@bigcommerce/checkout/ui';
 
-import { preventDefault } from '../common/dom';
 import { ShopperCurrency } from '../currency';
-import { IconClose } from '../ui/icon';
 import { Modal, ModalHeader } from '../ui/modal';
 import { isSmallScreen } from '../ui/responsive';
 
@@ -18,12 +17,13 @@ import OrderModalSummarySubheader from './OrderModalSummarySubheader';
 import OrderSummaryItems from './OrderSummaryItems';
 import OrderSummaryPrice from './OrderSummaryPrice';
 import OrderSummarySection from './OrderSummarySection';
-import OrderSummarySubtotals, { OrderSummarySubtotalsProps } from './OrderSummarySubtotals';
+import OrderSummarySubtotals, { type OrderSummarySubtotalsProps } from './OrderSummarySubtotals';
 import OrderSummaryTotal from './OrderSummaryTotal';
 
 export interface OrderSummaryDrawerProps {
+    children: ReactNode;
     additionalLineItems?: ReactNode;
-    lineItems: LineItemMap;
+    items: LineItemMap;
     total: number;
     storeCurrency: StoreCurrency;
     shopperCurrency: ShopperCurrencyType;
@@ -39,7 +39,6 @@ const OrderSummaryModal: FunctionComponent<
     additionalLineItems,
     children,
     isTaxIncluded,
-    isUpdatedCartSummayModal = false,
     taxes,
     onRequestClose,
     onAfterOpen,
@@ -47,7 +46,7 @@ const OrderSummaryModal: FunctionComponent<
     shopperCurrency,
     isOpen,
     headerLink,
-    lineItems,
+    items,
     total,
     ...orderSummarySubtotalsProps
 }) => {
@@ -55,12 +54,12 @@ const OrderSummaryModal: FunctionComponent<
 
     const subHeaderText = <OrderModalSummarySubheader
         amountWithCurrency={<ShopperCurrency amount={total} />}
-        items={lineItems}
+        items={items}
         shopperCurrencyCode={shopperCurrency.code}
         storeCurrencyCode={storeCurrency.code}
     />;
 
-    const continueButton = isUpdatedCartSummayModal && isSmallScreen() && <Button
+    const continueButton = isSmallScreen() && <Button
         className='cart-modal-continue'
         data-test="manage-instrument-cancel-button"
         onClick={preventDefault(onRequestClose)}>
@@ -69,13 +68,12 @@ const OrderSummaryModal: FunctionComponent<
 
     return <Modal
         additionalBodyClassName="cart-modal-body optimizedCheckout-orderSummary"
-        additionalHeaderClassName={`cart-modal-header optimizedCheckout-orderSummary${isUpdatedCartSummayModal ? ' with-continue-button' : ''}`}
-        additionalModalClassName={isUpdatedCartSummayModal ? 'optimizedCheckout-cart-modal' : ''}
+        additionalHeaderClassName="cart-modal-header optimizedCheckout-orderSummary with-continue-button"
+        additionalModalClassName="optimizedCheckout-cart-modal"
         footer={continueButton}
         header={renderHeader({
             headerLink,
             subHeaderText,
-            isUpdatedCartSummayModal,
             onRequestClose,
         })}
         isOpen={isOpen}
@@ -83,7 +81,7 @@ const OrderSummaryModal: FunctionComponent<
         onRequestClose={onRequestClose}
     >
         <OrderSummarySection>
-            <OrderSummaryItems displayLineItemsCount={!isUpdatedCartSummayModal} items={lineItems} />
+            <OrderSummaryItems displayLineItemsCount={false} items={items} />
         </OrderSummarySection>
         <OrderSummarySection>
             <OrderSummarySubtotals isTaxIncluded={isTaxIncluded} taxes={taxes} {...orderSummarySubtotalsProps} />
@@ -120,25 +118,8 @@ const OrderSummaryModal: FunctionComponent<
 const renderHeader: FunctionComponent<{
     headerLink?: ReactNode & React.HTMLProps<HTMLDivElement>;
     subHeaderText: ReactNode;
-    isUpdatedCartSummayModal: boolean;
     onRequestClose?(): void;
-}> = ({ onRequestClose, headerLink, subHeaderText, isUpdatedCartSummayModal }) => {
-    if (!isUpdatedCartSummayModal) {
-       return <>
-            <a className="cart-modal-close" href="#" onClick={preventDefault(onRequestClose)}>
-                <span className="is-srOnly">
-                    <TranslatedString id="common.close_action" />
-                </span>
-                <IconClose />
-            </a>
-            <ModalHeader additionalClassName="cart-modal-title">
-                <TranslatedString id="cart.cart_heading" />
-            </ModalHeader>
-
-            {headerLink}
-        </>;
-    }
-
+}> = ({ onRequestClose, headerLink, subHeaderText }) => {
     let newHeaderLink;
 
     if (isValidElement(headerLink)) {

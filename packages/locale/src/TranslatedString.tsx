@@ -1,16 +1,16 @@
-import React, { FunctionComponent } from 'react';
+import React, { type FunctionComponent } from 'react';
 
-import withLanguage, { WithLanguageProps } from './withLanguage';
+import { useLocale } from '@bigcommerce/checkout/contexts';
 
 export interface TranslatedStringProps {
     id: string;
     data?: any;
 }
 
-const TranslatedString: FunctionComponent<TranslatedStringProps & WithLanguageProps> = ({
-    data,
-    id,
-    language,
-}) => <>{language.translate(id, data)}</>;
+const TranslatedString: FunctionComponent<TranslatedStringProps> = ({ data, id }) => {
+    const { language } = useLocale();
 
-export default withLanguage(TranslatedString);
+    return <>{language.translate(id, data)}</>;
+};
+
+export default TranslatedString;

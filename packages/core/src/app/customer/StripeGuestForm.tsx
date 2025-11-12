@@ -1,17 +1,18 @@
-import { CustomerInitializeOptions, CustomerRequestOptions } from '@bigcommerce/checkout-sdk';
-import { FieldProps, FormikProps, withFormik } from 'formik';
-import React, { FunctionComponent, memo, ReactNode, useCallback, useEffect, useState } from 'react';
+import { type CustomerInitializeOptions, type CustomerRequestOptions } from '@bigcommerce/checkout-sdk';
+import { createStripeUPECustomerStrategy } from '@bigcommerce/checkout-sdk/integrations/stripe';
+import { type FieldProps, type FormikProps, withFormik } from 'formik';
+import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect, useState } from 'react';
+import { object } from 'yup';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
-import { CustomerSkeleton } from '@bigcommerce/checkout/ui';
+import { getAppliedStyles } from '@bigcommerce/checkout/dom-utils';
+import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 
-import CheckoutStepStatus from '../checkout/CheckoutStepStatus';
-import { getAppliedStyles } from '../common/dom';
-import { PrivacyPolicyField } from '../privacyPolicy';
+import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
+import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
 import { Button, ButtonVariant } from '../ui/button';
-import { BasicFormField, Fieldset, Legend } from '../ui/form';
+import { BasicFormField, Fieldset, Form, Legend } from '../ui/form';
 
-import { GuestFormValues } from './GuestForm';
+import { type GuestFormValues } from './GuestForm';
 import SubscribeField from './SubscribeField';
 
 export interface StripeGuestFormProps {
@@ -21,6 +22,7 @@ export interface StripeGuestFormProps {
     continueAsGuestButtonLabelId: string;
     email?: string;
     isLoading: boolean;
+    isExpressPrivacyPolicy: boolean;
     requiresMarketingConsent: boolean;
     defaultShouldSubscribe: boolean;
     privacyPolicyUrl?: string;
@@ -35,15 +37,19 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
     continueAsGuestButtonLabelId,
     isLoading,
     initialize,
+    isExpressPrivacyPolicy,
     deinitialize,
     onChangeEmail,
     onShowLogin,
     onContinueAsGuest,
     canSubscribe,
     checkoutButtons,
+    defaultShouldSubscribe,
     requiresMarketingConsent,
     privacyPolicyUrl,
     step,
+    status,
+    setFieldValue,
 }) => {
 
     const [continueAsAGuestButton, setContinueAsAGuestButton] = useState(true);
@@ -54,10 +60,11 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
     const handleOnClickSubmitButton = () => {
         onContinueAsGuest({
             email: emailValue,
-            shouldSubscribe: false,
+            shouldSubscribe: !!status?.shouldSubscribe,
         });
     };
     const setEmailCallback = useCallback((authenticated: boolean, email: string) => {
+        setFieldValue('email', email);
         onChangeEmail(email);
         setEmailValue(email);
         setContinueAsAGuestButton(!email);
@@ -74,6 +81,12 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
         }
     }, [emailValue, authentication, isNewAuth]);
 
+    useEffect(() => {
+        if (status?.valSuccess) {
+            handleOnClickSubmitButton();
+        }
+    }, [status?.valSuccess]);
+
     const handleLoading = useCallback((mounted: boolean) => {
         setIsStripeLoading(mounted);
     }, []);
@@ -87,6 +100,7 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
     const stripeInitialize = () => {
         initialize( {
             methodId: 'stripeupe',
+            integrations: [createStripeUPECustomerStrategy],
             stripeupe: {
                 container: 'stripeupeLink',
                 onEmailChange: setEmailCallback,
@@ -102,6 +116,13 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
 
         return () => stripeDeinitialize();
     }, []);
+
+    useEffect(() => {
+        void setFieldValue(
+            'shouldSubscribe',
+            requiresMarketingConsent ? false : defaultShouldSubscribe,
+        );
+    }, [requiresMarketingConsent, defaultShouldSubscribe]);
 
     const getStylesFromElement = (
         id: string,
@@ -139,7 +160,6 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
             <div
                 className="optimizedCheckout-form-input"
                 id={ `${containerId}--input` }
-                placeholder="1111"
             >
                 <div
                     className="form-field--error"
@@ -170,8 +190,12 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
 
     return (
         <>
-            <CustomerSkeleton isLoading={isStripeLoading}/>
-            <div className="checkout-form" style={ {display: isStripeLoading ? 'none' : undefined} }>
+            <Form
+                className="checkout-form"
+                id="checkout-customer-guest"
+                testId="checkout-customer-guest"
+            >
+                <div className="checkout-form" style={ { display: isStripeLoading ? 'none' : undefined } }>
                     <Fieldset
                         legend={ !authentication &&
                             <Legend hidden>
@@ -187,10 +211,6 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
                                     name="shouldSubscribe"
                                     render={ renderField }
                                 /> }
-
-                                { privacyPolicyUrl && <PrivacyPolicyField
-                                    url={ privacyPolicyUrl }
-                                /> }
                             </div>
 
                             <div className="form-actions customerEmail-action">
@@ -199,7 +219,6 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
                                     disabled={ continueAsAGuestButton }
                                     id="stripe-checkout-customer-continue"
                                     isLoading={ isLoading }
-                                    onClick={ handleOnClickSubmitButton }
                                     testId="stripe-customer-continue-as-guest-button"
                                     type="submit"
                                     variant={ ButtonVariant.Primary }
@@ -208,6 +227,11 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
                                 </Button> }
                             </div>
                         </div>
+
+                        {privacyPolicyUrl && (
+                            <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
+                        )}
+
                         {
                             !isLoading && <p>
                                 <TranslatedString id="customer.login_text"/>
@@ -216,6 +240,8 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
                                     data-test="customer-continue-button"
                                     id="checkout-customer-login"
                                     onClick={ onShowLogin }
+                                    role="button"
+                                    tabIndex={0}
                                 >
                                     <TranslatedString id="customer.login_action"/>
                                 </a>
@@ -223,23 +249,40 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
                         }
                         { !authentication && checkoutButtons }
                     </Fieldset>
-            </div>
-            { renderCheckoutThemeStylesForStripeUPE() }
+                </div>
+                { renderCheckoutThemeStylesForStripeUPE() }
+            </Form>
         </>
     );
 };
 
-export default withFormik<StripeGuestFormProps, GuestFormValues>({
-    mapPropsToValues: ({
-                           email = '',
-                           defaultShouldSubscribe = false,
-                           requiresMarketingConsent,
-                       }) => ({
-        email,
-        shouldSubscribe: requiresMarketingConsent ? false : defaultShouldSubscribe,
-        privacyPolicy: false,
-    }),
-    handleSubmit: (values, { props: { onContinueAsGuest } }) => {
-        onContinueAsGuest(values);
-    },
-})(memo(StripeGuestForm));
+export default withLanguage(
+    withFormik<StripeGuestFormProps, GuestFormValues>({
+            mapPropsToValues: ({
+                email = '',
+                defaultShouldSubscribe = false,
+                requiresMarketingConsent,
+            }) => ({
+                email,
+                shouldSubscribe: requiresMarketingConsent ? false : defaultShouldSubscribe,
+                privacyPolicy: false,
+            }),
+            handleSubmit: ( values, { setStatus }) => {
+                setStatus({
+                    valSuccess: true,
+                    shouldSubscribe: values.shouldSubscribe,
+                  });
+            },
+            validationSchema: ({ language, privacyPolicyUrl, isExpressPrivacyPolicy }: StripeGuestFormProps & WithLanguageProps) => {
+                if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
+                    return getPrivacyPolicyValidationSchema({
+                            isRequired: !!privacyPolicyUrl,
+                            language,
+                        })
+                }
+
+                return object({});
+            },
+        })(memo(StripeGuestForm))
+)
+

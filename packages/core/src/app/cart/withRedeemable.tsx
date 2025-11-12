@@ -1,8 +1,8 @@
-import React, { ComponentType, FunctionComponent } from 'react';
+import React, { type ComponentType, type FunctionComponent } from 'react';
 
-import { OrderSummaryProps, OrderSummarySubtotalsProps } from '../order';
+import { type OrderSummaryProps, type OrderSummarySubtotalsProps } from '../order';
 
-import { WithCheckoutCartSummaryProps } from './CartSummary';
+import { type WithCheckoutCartSummaryProps } from './CartSummary';
 import mapToOrderSummarySubtotalsProps from './mapToOrderSummarySubtotalsProps';
 import Redeemable from './Redeemable';
 
@@ -18,13 +18,13 @@ export default function withRedeemable(
             onRemovedCoupon,
             onRemovedGiftCertificate,
             storeCreditAmount,
-            isUpdatedCartSummayModal = false,
+            isShippingDiscountDisplayEnabled,
             ...redeemableProps
         } = props;
 
         return (
             <OriginalComponent
-                {...mapToOrderSummarySubtotalsProps(checkout)}
+                {...mapToOrderSummarySubtotalsProps(checkout, isShippingDiscountDisplayEnabled)}
                 additionalLineItems={
                     <Redeemable
                         {...{
@@ -35,7 +35,6 @@ export default function withRedeemable(
                     />
                 }
                 headerLink={headerLink}
-                isUpdatedCartSummayModal={isUpdatedCartSummayModal}
                 lineItems={checkout.cart.lineItems}
                 onRemovedCoupon={onRemovedCoupon}
                 onRemovedGiftCertificate={onRemovedGiftCertificate}

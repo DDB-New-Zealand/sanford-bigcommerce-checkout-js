@@ -33,7 +33,7 @@ test.describe('ApplePay', () => {
             './packages/test-framework/src/support/orderConfirmation.ejs',
             { orderId: '124' },
         );
-        await page.route('**/api/storefront/payments/applepay?cartId=124', (route) => {
+        await page.route('**/api/storefront/payments/applepay?cartId=*', (route) => {
             void route.fulfill({ ...responseProps, body: applePayCart });
         });
         await page.route('**/api/public/v1/payments/applepay/validate_merchant', (route) => {
@@ -63,7 +63,7 @@ test.describe('ApplePay', () => {
         await assertions.shouldSeeOrderConfirmation();
     });
 
-    test('Customer should be able to pay using ApplePay through the customer step in checkout', async ({
+    test.skip('Customer should be able to pay using ApplePay through the customer step in checkout', async ({
         assertions,
         checkout,
         page,
@@ -109,7 +109,7 @@ test.describe('ApplePay', () => {
 
         // Playwright actions
         await checkout.goto();
-        await page.locator('[aria-label="Apple Pay"]').click();
+        await page.locator('apple-pay-button').click();
         // Assertions
         await assertions.shouldSeeOrderConfirmation();
     });

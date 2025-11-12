@@ -1,14 +1,14 @@
-import { CheckoutService, createCheckoutService, LanguageService } from '@bigcommerce/checkout-sdk';
-import { render, screen } from '@testing-library/react';
-import React, { FunctionComponent } from 'react';
+import { type CheckoutService, createCheckoutService, type LanguageService } from '@bigcommerce/checkout-sdk';
+import React, { type FunctionComponent } from 'react';
 
-import { createLocaleContext, LocaleContext, LocaleContextType } from '@bigcommerce/checkout/locale';
-import { CheckoutProvider } from '@bigcommerce/checkout/payment-integration-api';
+import { CheckoutProvider, type LocaleContextType } from '@bigcommerce/checkout/contexts';
+import { createLocaleContext } from '@bigcommerce/checkout/locale';
+import { render, screen } from '@bigcommerce/checkout/test-utils';
 
 import { getStoreConfig } from '../config/config.mock';
 
 import { PaymentMethodId, PaymentMethodType } from './paymentMethod';
-import PaymentSubmitButton, { PaymentSubmitButtonProps } from './PaymentSubmitButton';
+import PaymentSubmitButton, { type PaymentSubmitButtonProps } from './PaymentSubmitButton';
 
 describe('PaymentSubmitButton', () => {
     let PaymentSubmitButtonTest: FunctionComponent<PaymentSubmitButtonProps>;
@@ -23,12 +23,10 @@ describe('PaymentSubmitButton', () => {
 
         PaymentSubmitButtonTest = (props) => (
             <CheckoutProvider checkoutService={checkoutService}>
-                <LocaleContext.Provider value={localeContext}>
-                    <PaymentSubmitButton
-                        isPaymentDataRequired
-                        {...props}
-                    />
-                </LocaleContext.Provider>
+                <PaymentSubmitButton
+                    isPaymentDataRequired
+                    {...props}
+                />
             </CheckoutProvider>
         );
     });
@@ -71,18 +69,6 @@ describe('PaymentSubmitButton', () => {
         expect(screen.getByText(languageService.translate('payment.visa_checkout_continue_action'))).toBeInTheDocument();
     });
 
-    it('renders button with special label for ChasePay', () => {
-        render(<PaymentSubmitButtonTest methodType="chasepay" />);
-
-        expect(screen.getByText(languageService.translate('payment.chasepay_continue_action'))).toBeInTheDocument();
-    });
-
-    it('renders button with special label for Opy', () => {
-        render(<PaymentSubmitButtonTest methodId="opy" methodName="Opy" />);
-
-        expect(screen.getByText(languageService.translate('payment.opy_continue_action', { methodName: 'Opy' }))).toBeInTheDocument();
-    });
-
     it('renders button with special label for PayPal', () => {
         render(<PaymentSubmitButtonTest isComplete={true} methodType="paypal" />);
 
@@ -93,6 +79,17 @@ describe('PaymentSubmitButton', () => {
         render(<PaymentSubmitButtonTest methodType="paypal" />);
 
         expect(screen.getByText(languageService.translate('payment.paypal_continue_action'))).toBeInTheDocument();
+    });
+
+    it('renders button with "place order" label for PayPal when the order placement starts on checkout page', () => {
+        render(
+            <PaymentSubmitButtonTest
+                methodId={PaymentMethodId.PaypalCommerce}
+                methodType="paypal"
+            />,
+        );
+
+        expect(screen.getByText(languageService.translate('payment.place_order_action'))).toBeInTheDocument();
     });
 
     it('renders button with special label for Braintree Venmo', () => {

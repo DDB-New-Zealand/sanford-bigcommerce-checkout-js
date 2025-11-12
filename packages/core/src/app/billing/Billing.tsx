@@ -1,99 +1,60 @@
-import {
-    Address,
-    CheckoutRequestBody,
-    CheckoutSelectors,
-    Country,
-    Customer,
-    FormField,
-} from '@bigcommerce/checkout-sdk';
-import { noop } from 'lodash';
-import React, { Component, ReactNode } from 'react';
+import type { CheckoutSelectors } from '@bigcommerce/checkout-sdk';
+import React, { type ReactElement, useEffect } from 'react';
 
+import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-import { CheckoutContextProps } from '@bigcommerce/checkout/payment-integration-api';
 import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
 
 import { isEqualAddress, mapAddressFromFormValues } from '../address';
-import { withCheckout } from '../checkout';
-import { EMPTY_ARRAY, isFloatingLabelEnabled } from '../common/utility';
-import { getShippableItemsCount } from '../shipping';
 import { Legend } from '../ui/form';
 
-import BillingForm, { BillingFormValues } from './BillingForm';
+import BillingForm, { type BillingFormValues } from './BillingForm';
 import getBillingMethodId from './getBillingMethodId';
 
 export interface BillingProps {
     navigateNextStep(): void;
-    onReady?(): void;
+    onReady(): void;
     onUnhandledError(error: Error): void;
 }
 
-export interface WithCheckoutBillingProps {
-    countries: Country[];
-    countriesWithAutocomplete: string[];
-    customer: Customer;
-    customerMessage: string;
-    googleMapsApiKey: string;
-    isInitializing: boolean;
-    isUpdating: boolean;
-    shouldShowOrderComments: boolean;
-    billingAddress?: Address;
-    methodId?: string;
-    isFloatingLabelEnabled?: boolean;
-    getFields(countryCode?: string): FormField[];
-    initialize(): Promise<CheckoutSelectors>;
-    updateAddress(address: Partial<Address>): Promise<CheckoutSelectors>;
-    updateCheckout(payload: CheckoutRequestBody): Promise<CheckoutSelectors>;
-}
+const Billing = ({ navigateNextStep, onReady, onUnhandledError }:BillingProps): ReactElement => {
+    const { checkoutService, checkoutState } = useCheckout();
+    const { themeV2 }  = useThemeContext();
 
-class Billing extends Component<BillingProps & WithCheckoutBillingProps> {
-    async componentDidMount(): Promise<void> {
-        const { initialize, onReady = noop, onUnhandledError } = this.props;
+    const {
+        data: {
+            getCheckout,
+            getConfig,
+            getCart,
+            getCustomer,
+            getBillingAddress,
+            getBillingAddressFields,
+        },
+        statuses: { isLoadingBillingCountries },
+    } = checkoutState;
+    const config = getConfig();
+    const customer = getCustomer();
+    const checkout = getCheckout();
+    const cart = getCart();
 
-        try {
-            await initialize();
-            onReady();
-        } catch (error) {
-            if (error instanceof Error) {
-                onUnhandledError(error);
-            }
-        }
+    if (!config || !customer || !checkout || !cart) {
+        throw new Error('Unable to access checkout data')
     }
 
-    render(): ReactNode {
-        const { updateAddress, isInitializing, ...props } = this.props;
+    const isInitializing  = isLoadingBillingCountries();
 
-        return (
-            <AddressFormSkeleton isLoading={isInitializing}>
-                <div className="checkout-form">
-                    <div className="form-legend-container">
-                        <Legend testId="billing-address-heading">
-                            <TranslatedString id="billing.billing_address_heading" />
-                        </Legend>
-                    </div>
-                    <BillingForm
-                        {...props}
-                        onSubmit={this.handleSubmit}
-                        updateAddress={updateAddress}
-                    />
-                </div>
-            </AddressFormSkeleton>
-        );
-    }
-
-    private handleSubmit: (values: BillingFormValues) => void = async ({
-        orderComment,
-        ...addressValues
-    }) => {
-        const {
-            updateAddress,
-            updateCheckout,
-            customerMessage,
-            billingAddress,
-            navigateNextStep,
-            onUnhandledError,
-        } = this.props;
-
+    // Below constants are for <BillingForm />'s HOC props
+    const customerMessage  = checkout.customerMessage;
+    const methodId  = getBillingMethodId(checkout);
+    const billingAddress  = getBillingAddress();
+    const getFields  = getBillingAddressFields;
+    const handleSubmit = async ({
+                                    orderComment,
+                                    ...addressValues
+                                }: BillingFormValues):Promise<void> => {
+        const updateAddress  = checkoutService.updateBillingAddress;
+        const updateCheckout  = checkoutService.updateCheckout;
+        const billingAddress  = getBillingAddress();
         const promises: Array<Promise<CheckoutSelectors>> = [];
         const address = mapAddressFromFormValues(addressValues);
 
@@ -115,59 +76,42 @@ class Billing extends Component<BillingProps & WithCheckoutBillingProps> {
             }
         }
     };
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                await checkoutService.loadBillingAddressFields();
+                onReady();
+            } catch (error) {
+                if (error instanceof Error) {
+                    onUnhandledError(error);
+                }
+            }
+        }
+
+        void init();
+    }, []);
+
+    return (
+        <AddressFormSkeleton isLoading={isInitializing}>
+            <div className="checkout-form">
+                <div className="form-legend-container">
+                    <Legend testId="billing-address-heading" themeV2={themeV2}>
+                        <TranslatedString id="billing.billing_address_heading" />
+                    </Legend>
+                </div>
+                <BillingForm
+                    billingAddress={billingAddress}
+                    customerMessage={customerMessage}
+                    getFields={getFields}
+                    methodId={methodId}
+                    navigateNextStep={navigateNextStep}
+                    onSubmit={handleSubmit}
+                    onUnhandledError={onUnhandledError}
+                />
+            </div>
+        </AddressFormSkeleton>
+    );
 }
 
-function mapToBillingProps({
-    checkoutService,
-    checkoutState,
-}: CheckoutContextProps): WithCheckoutBillingProps | null {
-    const {
-        data: {
-            getCheckout,
-            getConfig,
-            getCart,
-            getCustomer,
-            getBillingAddress,
-            getBillingAddressFields,
-            getBillingCountries,
-        },
-        statuses: { isLoadingBillingCountries, isUpdatingBillingAddress, isUpdatingCheckout },
-    } = checkoutState;
-
-    const config = getConfig();
-    const customer = getCustomer();
-    const checkout = getCheckout();
-    const cart = getCart();
-
-    if (!config || !customer || !checkout || !cart) {
-        return null;
-    }
-
-    const { enableOrderComments, googleMapsApiKey, features } = config.checkoutSettings;
-
-    const countriesWithAutocomplete = ['US', 'CA', 'AU', 'NZ'];
-
-    if (features['CHECKOUT-4183.checkout_google_address_autocomplete_uk']) {
-        countriesWithAutocomplete.push('GB');
-    }
-
-    return {
-        billingAddress: getBillingAddress(),
-        countries: getBillingCountries() || EMPTY_ARRAY,
-        countriesWithAutocomplete,
-        customer,
-        customerMessage: checkout.customerMessage,
-        getFields: getBillingAddressFields,
-        googleMapsApiKey,
-        initialize: checkoutService.loadBillingAddressFields,
-        isInitializing: isLoadingBillingCountries(),
-        isUpdating: isUpdatingBillingAddress() || isUpdatingCheckout(),
-        methodId: getBillingMethodId(checkout),
-        shouldShowOrderComments: enableOrderComments && getShippableItemsCount(cart) < 1,
-        updateAddress: checkoutService.updateBillingAddress,
-        updateCheckout: checkoutService.updateCheckout,
-        isFloatingLabelEnabled: isFloatingLabelEnabled(config.checkoutSettings),
-    };
-}
-
-export default withCheckout(mapToBillingProps)(Billing);
+export default Billing;

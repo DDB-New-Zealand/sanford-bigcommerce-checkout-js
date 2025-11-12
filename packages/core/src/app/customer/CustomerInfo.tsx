@@ -1,9 +1,10 @@
-import { CheckoutSelectors, CustomerRequestOptions, CustomError } from '@bigcommerce/checkout-sdk';
+import { type CheckoutSelectors, type CustomerRequestOptions, type CustomError } from '@bigcommerce/checkout-sdk';
+import classNames from 'classnames';
 import { noop } from 'lodash';
-import React, { FunctionComponent } from 'react';
+import React, { type FunctionComponent } from 'react';
 
+import { type CheckoutContextProps, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-import { CheckoutContextProps } from '@bigcommerce/checkout/payment-integration-api';
 
 import { withCheckout } from '../checkout';
 import { isErrorWithType } from '../common/error';
@@ -21,24 +22,38 @@ export interface CustomerSignOutEvent {
 }
 
 interface WithCheckoutCustomerInfoProps {
+    checkoutLink: string;
     email: string;
     methodId: string;
     isSignedIn: boolean;
     isSigningOut: boolean;
+    logoutLink: string;
+    shouldRedirectToStorefrontForAuth: boolean;
     signOut(options?: CustomerRequestOptions): Promise<CheckoutSelectors>;
 }
 
 const CustomerInfo: FunctionComponent<CustomerInfoProps & WithCheckoutCustomerInfoProps> = ({
+    checkoutLink,
     email,
     methodId,
     isSignedIn,
     isSigningOut,
+    logoutLink,
+    shouldRedirectToStorefrontForAuth,
     onSignOut = noop,
     onSignOutError = noop,
     signOut,
 }) => {
+    const { themeV2 } = useThemeContext();
+
     const handleSignOut: () => Promise<void> = async () => {
         try {
+            if (shouldRedirectToStorefrontForAuth) {
+                window.location.assign(`${logoutLink}?redirectTo=${checkoutLink}`);
+
+                return;
+            }
+
             if (isSupportedSignoutMethod(methodId)) {
                 await signOut({ methodId });
                 onSignOut({ isCartEmpty: false });
@@ -59,7 +74,9 @@ const CustomerInfo: FunctionComponent<CustomerInfoProps & WithCheckoutCustomerIn
     return (
         <div className="customerView" data-test="checkout-customer-info">
             <div
-                className="customerView-body optimizedCheckout-contentPrimary"
+                className={classNames('customerView-body',
+                    { 'body-regular': themeV2 },
+                )}
                 data-test="customer-info"
             >
                 {email}
@@ -68,6 +85,7 @@ const CustomerInfo: FunctionComponent<CustomerInfoProps & WithCheckoutCustomerIn
             <div className="customerView-actions">
                 {isSignedIn && (
                     <Button
+                        className={themeV2 ? 'body-regular' : ''}
                         isLoading={isSigningOut}
                         onClick={handleSignOut}
                         size={ButtonSize.Tiny}
@@ -87,17 +105,20 @@ function mapToWithCheckoutCustomerInfoProps({
     checkoutState,
 }: CheckoutContextProps): WithCheckoutCustomerInfoProps | null {
     const {
-        data: { getBillingAddress, getCheckout, getCustomer },
+        data: { getBillingAddress, getCheckout, getCustomer, getConfig },
         statuses: { isSigningOut },
     } = checkoutState;
 
     const billingAddress = getBillingAddress();
     const checkout = getCheckout();
     const customer = getCustomer();
+    const config = getConfig();
 
-    if (!billingAddress || !checkout || !customer) {
+    if (!billingAddress || !checkout || !customer || !config) {
         return null;
     }
+
+    const { checkoutSettings, links: { checkoutLink, logoutLink } } = config;
 
     const methodId =
         checkout.payments && checkout.payments.length === 1 ? checkout.payments[0].providerId : '';
@@ -107,6 +128,9 @@ function mapToWithCheckoutCustomerInfoProps({
         methodId,
         isSignedIn: canSignOut(customer, checkout, methodId),
         isSigningOut: isSigningOut(),
+        logoutLink,
+        checkoutLink,
+        shouldRedirectToStorefrontForAuth: checkoutSettings.shouldRedirectToStorefrontForAuth,
         signOut: checkoutService.signOutCustomer,
     };
 }

@@ -1,29 +1,33 @@
 import {
-    AccountInstrument,
-    CheckoutSelectors,
-    PaymentInitializeOptions,
-    PaymentInstrument,
-    PaymentMethod,
-    PaymentRequestOptions,
+    type AccountInstrument,
+    type CheckoutSelectors,
+    type PaymentInitializeOptions,
+    type PaymentInstrument,
+    type PaymentMethod,
+    type PaymentRequestOptions,
 } from '@bigcommerce/checkout-sdk';
+import { createExternalPaymentStrategy } from '@bigcommerce/checkout-sdk/integrations/external';
+import { createHummPaymentStrategy } from '@bigcommerce/checkout-sdk/integrations/humm';
+import { createOffsitePaymentStrategy } from '@bigcommerce/checkout-sdk/integrations/offsite';
 import { memoizeOne } from '@bigcommerce/memoize';
 import { find, noop } from 'lodash';
-import React, { Component, ReactNode } from 'react';
+import React, { Component, type ReactNode } from 'react';
 
-import { withLanguage, WithLanguageProps } from '@bigcommerce/checkout/locale';
-import { CheckoutContextProps, PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
+import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
+import { type MapToPropsFactory } from '@bigcommerce/checkout/legacy-hoc';
+import { withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
+import { type PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
+import { LoadingOverlay } from '@bigcommerce/checkout/ui';
 
 import { withCheckout } from '../../checkout';
-import { connectFormik, ConnectFormikProps } from '../../common/form';
-import { MapToPropsFactory } from '../../common/hoc';
-import { LoadingOverlay } from '../../ui/loading';
+import { connectFormik, type ConnectFormikProps } from '../../common/form';
 import {
     AccountInstrumentFieldset,
     isAccountInstrument,
     isInstrumentFeatureAvailable,
 } from '../storedInstrument';
 import StoreInstrumentFieldset from '../StoreInstrumentFieldset';
-import withPayment, { WithPaymentProps } from '../withPayment';
+import withPayment, { type WithPaymentProps } from '../withPayment';
 
 export interface HostedPaymentMethodProps {
     description?: ReactNode;
@@ -74,6 +78,11 @@ class HostedPaymentMethod extends Component<
             await initializePayment({
                 gatewayId: method.gateway,
                 methodId: method.id,
+                integrations: [
+                    createHummPaymentStrategy,
+                    createExternalPaymentStrategy,
+                    createOffsitePaymentStrategy,
+                ],
             });
 
             if (isInstrumentFeatureAvailableProp) {
@@ -183,7 +192,7 @@ const mapFromCheckoutProps: MapToPropsFactory<
     );
 
     return (context, props) => {
-        const { isUsingMultiShipping = false, method } = props;
+        const { method } = props;
 
         const { checkoutService, checkoutState } = context;
 
@@ -218,7 +227,6 @@ const mapFromCheckoutProps: MapToPropsFactory<
                 isInstrumentFeatureAvailable({
                     config,
                     customer,
-                    isUsingMultiShipping,
                     paymentMethod: method,
                 }),
             isLoadingInstruments: isLoadingInstruments(),

@@ -1,4 +1,4 @@
-import { TranslationData } from '@bigcommerce/checkout-sdk';
+import { type TranslationData } from '@bigcommerce/checkout-sdk';
 import { includes } from 'lodash';
 
 export default function mapSubmitOrderErrorMessage(
@@ -27,6 +27,9 @@ export default function mapSubmitOrderErrorMessage(
 
         case 'cart_consistency':
             return translate('cart.consistency_error');
+        
+        case 'empty_cart':
+            return translate('cart.empty_cart_error_message');
 
         default:
             if (
@@ -69,6 +72,14 @@ export function mapSubmitOrderErrorTitle(
 ): string {
     if (error.type === 'unrecoverable') {
         return translate('common.unavailable_heading');
+    }
+
+    if (error.type === 'missing_shipping_method') {
+        return translate('common.missing_shipping_method_heading');
+    }
+
+    if (error.type === 'invalid_shipping_address') {
+        return translate('common.invalid_shipping_address');
     }
 
     return translate('common.error_heading');

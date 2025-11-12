@@ -1,4 +1,4 @@
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 // TODO: more assertions
 export class Assertions {
@@ -16,6 +16,12 @@ export class Assertions {
         await expect(page.locator('.checkout-step--payment')).toContainText('Payment');
     }
 
+    async shouldSeeElement(element: string): Promise<void> {
+        const page = this.page;
+
+        await expect(page.locator(element)).toBeVisible();
+    }
+
     async shouldSeeOrderConfirmation(): Promise<void> {
         const page = this.page;
 
@@ -26,5 +32,13 @@ export class Assertions {
         await expect(page.locator('data-test=order-confirmation-order-number-text')).toContainText(
             /Your order number is \d*/,
         );
+    }
+
+    async shouldSeeErrorModal(errorMessage: string): Promise<void> {
+        const page = this.page;
+
+        await page.locator('data-test=modal-body').waitFor({ state: 'visible' });
+        await expect(page.locator('data-test=modal-body')).toBeVisible();
+        await expect(page.locator('#errorModalMessage')).toHaveText(errorMessage);
     }
 }

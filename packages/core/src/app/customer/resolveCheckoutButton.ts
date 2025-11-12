@@ -1,17 +1,21 @@
-import { ComponentType } from 'react';
+import { type ComponentType } from 'react';
 
 import {
-    CheckoutButtonProps,
-    CheckoutButtonResolveId,
+    type CheckoutButtonProps,
+    type CheckoutButtonResolveId,
 } from '@bigcommerce/checkout/payment-integration-api';
 
-import { resolveComponent } from '../common/resolver';
+import { resolveLazyComponent } from '../common/resolver';
+import * as lazyCheckoutButtons from '../generated/checkoutButtons';
 
 export default function resolveCheckoutButton(
-    resolveId: CheckoutButtonResolveId,
+    resolveId: CheckoutButtonResolveId
 ): ComponentType<CheckoutButtonProps> | undefined {
-    return resolveComponent<CheckoutButtonResolveId, CheckoutButtonProps>(
+    const { ComponentRegistry, ...components } = lazyCheckoutButtons;
+
+    return resolveLazyComponent<CheckoutButtonResolveId, CheckoutButtonProps>(
         resolveId,
-        require('../generated/checkoutButtons'),
+        components,
+        ComponentRegistry,
     );
 }

@@ -1,8 +1,8 @@
-import { CardInstrument } from '@bigcommerce/checkout-sdk';
+import { type CardInstrument } from '@bigcommerce/checkout-sdk';
 import { expirationDate } from 'card-validator';
 import classNames from 'classnames';
 import creditCardType from 'credit-card-type';
-import React, { FunctionComponent, memo, useCallback } from 'react';
+import React, { type FunctionComponent, memo, useCallback } from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { CreditCardIcon, LoadingOverlay } from '@bigcommerce/checkout/ui';
@@ -32,11 +32,10 @@ const ManageInstrumentsRow: FunctionComponent<ManageInstrumentsRowProps> = ({
 }) => {
     const cardType = mapFromInstrumentCardType(instrument.brand);
     const cardInfo = creditCardType.getTypeInfo(cardType);
-    const isExpired =
-        expirationDate({
-            month: instrument.expiryMonth,
-            year: instrument.expiryYear,
-        }).isValid === false;
+    const isExpired = !expirationDate({
+        month: instrument.expiryMonth,
+        year: instrument.expiryYear,
+    }).isValid;
 
     const handleDelete = useCallback(() => {
         onDeleteInstrument(instrument.bigpayToken);

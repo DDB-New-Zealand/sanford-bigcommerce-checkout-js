@@ -1,11 +1,12 @@
-import { Page } from '@playwright/test';
-import { MODE, Polly } from '@pollyjs/core';
+import { type Page } from '@playwright/test';
+import { type MODE, Polly } from '@pollyjs/core';
 import { API } from '@pollyjs/node-server';
 import FSPersister from '@pollyjs/persister-fs';
 import { includes, isObject } from 'lodash';
 import { PlaywrightAdapter } from 'polly-adapter-playwright';
 
 import { getStoreUrl } from '../../';
+import { matchRequestsBy } from '../../../../pollyConfig';
 
 import { CustomFSPersister } from './CustomFSPersister';
 import { ignoredHeaders, ignoredPayloads } from './senstiveDataConfig';
@@ -61,13 +62,7 @@ export class PollyObject {
                     recordingsDir: harFolder,
                 },
             },
-            matchRequestsBy: {
-                method: true,
-                url: true,
-                order: true,
-                headers: false,
-                body: true,
-            },
+            matchRequestsBy,
         });
 
         this.polly.server.any().on('request', (req) => {
@@ -76,6 +71,10 @@ export class PollyObject {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 Object.entries(req.headers).filter(([key, _]) => !includes(ignoredHeaders, key)),
             );
+
+            req.url = req.url
+                .replace('%2ClineItems.physicalItems.categories', '')
+                .replace('%2ClineItems.digitalItems.categories', '');
 
             if (req.body && req.body.length > 0) {
                 req.body = JSON.stringify(this.sortPayload(req.jsonBody()));

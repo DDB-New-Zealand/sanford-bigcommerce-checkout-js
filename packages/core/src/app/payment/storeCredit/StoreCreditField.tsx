@@ -1,9 +1,10 @@
 import { noop } from 'lodash';
-import React, { FunctionComponent, useCallback, useMemo } from 'react';
+import React, { type FunctionComponent, useCallback, useMemo } from 'react';
 
-import { TranslatedString, withCurrency, WithCurrencyProps } from '@bigcommerce/checkout/locale';
+import { useCheckout } from '@bigcommerce/checkout/contexts';
+import { preventDefault } from '@bigcommerce/checkout/dom-utils';
+import { TranslatedString, withCurrency, type WithCurrencyProps } from '@bigcommerce/checkout/locale';
 
-import { preventDefault } from '../../common/dom';
 import { CheckboxInput } from '../../ui/form';
 import { Tooltip, TooltipTrigger } from '../../ui/tooltip';
 
@@ -23,7 +24,13 @@ const StoreCreditField: FunctionComponent<StoreCreditFieldProps & WithCurrencyPr
     usableStoreCredit,
     isStoreCreditApplied,
 }) => {
-    const handleChange = useCallback((event) => onChange(event.target.checked), [onChange]);
+    const {
+        checkoutState: {
+            statuses: { isSubmittingOrder }
+        }
+    } = useCheckout();
+
+    const handleChange = useCallback((event: any) => onChange(event.target.checked), [onChange]);
     const labelContent = useMemo(
         () => (
             <>
@@ -54,6 +61,7 @@ const StoreCreditField: FunctionComponent<StoreCreditFieldProps & WithCurrencyPr
     return (
         <CheckboxInput
             checked={isStoreCreditApplied}
+            disabled={isSubmittingOrder()}
             id={name}
             label={labelContent}
             name={name}

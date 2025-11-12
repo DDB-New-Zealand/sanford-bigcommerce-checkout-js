@@ -5,7 +5,7 @@
     border: container("border");
     border-radius: $global-radius;
     display: flex;
-    min-height: 9.383rem;
+    min-height: 5rem;
     text-align: center;
 }
 
@@ -14,8 +14,4 @@
     flex: 1;
     margin: 0;
     padding: spacing("half");
-}
-
-.shippingOptions-skeleton {
-    margin-left: 0;
 }

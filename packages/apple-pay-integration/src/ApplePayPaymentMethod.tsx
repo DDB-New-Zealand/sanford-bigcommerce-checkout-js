@@ -1,12 +1,13 @@
-import React, { FunctionComponent, useEffect } from 'react';
+import { createApplePayPaymentStrategy } from '@bigcommerce/checkout-sdk/integrations/apple-pay';
+import React, { type FunctionComponent, useEffect } from 'react';
 
 import {
-    PaymentMethodProps,
-    PaymentMethodResolveId,
+    type PaymentMethodProps,
+    type PaymentMethodResolveId,
     toResolvableComponent,
 } from '@bigcommerce/checkout/payment-integration-api';
 
-const ApplePaymentMethod: FunctionComponent<PaymentMethodProps> = ({
+const ApplePayPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
     method,
     checkoutService,
     language,
@@ -18,6 +19,7 @@ const ApplePaymentMethod: FunctionComponent<PaymentMethodProps> = ({
                 await checkoutService.initializePayment({
                     gatewayId: method.gateway,
                     methodId: method.id,
+                    integrations: [createApplePayPaymentStrategy],
                     applepay: {
                         shippingLabel: language.translate('cart.shipping_text'),
                         subtotalLabel: language.translate('cart.subtotal_text'),
@@ -55,6 +57,6 @@ const ApplePaymentMethod: FunctionComponent<PaymentMethodProps> = ({
 };
 
 export default toResolvableComponent<PaymentMethodProps, PaymentMethodResolveId>(
-    ApplePaymentMethod,
+    ApplePayPaymentMethod,
     [{ id: 'applepay' }],
 );

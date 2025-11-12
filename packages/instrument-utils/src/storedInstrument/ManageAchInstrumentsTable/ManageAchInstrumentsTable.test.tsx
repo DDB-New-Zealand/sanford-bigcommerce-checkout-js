@@ -1,19 +1,16 @@
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { create } from 'react-test-renderer';
-import { render, screen } from '@testing-library/react';
 
-import {
-    createLocaleContext,
-    LocaleContext,
-    LocaleContextType,
-} from '@bigcommerce/checkout/locale';
-import { getInstruments, getStoreConfig } from '@bigcommerce/checkout/test-utils';
+import { LocaleContext, type LocaleContextType } from '@bigcommerce/checkout/contexts';
+import { createLocaleContext } from '@bigcommerce/checkout/locale';
+import { getInstruments, getStoreConfig } from '@bigcommerce/checkout/test-mocks';
 
 import { isAchInstrument } from '../../guards';
 
 import ManageAchInstrumentsTable, {
-    ManageAchInstrumentsTableProps,
+    type ManageAchInstrumentsTableProps,
 } from './ManageAchInstrumentsTable';
 
 describe('ManageAchInstrumentsTable', () => {
@@ -57,7 +54,7 @@ describe('ManageAchInstrumentsTable', () => {
             </LocaleContext.Provider>,
         );
 
-        await userEvent.click(screen.getByText('Delete'));
+        await userEvent.click(screen.getAllByText('Delete')[0]);
 
         expect(defaultProps.onDeleteInstrument).toHaveBeenCalledWith(
             defaultProps.instruments[0].bigpayToken,

@@ -1,17 +1,15 @@
 import {
-    CheckoutSelectors,
-    CustomerInitializeOptions,
-    CustomerRequestOptions,
-    ExecutePaymentMethodCheckoutOptions,
+    type CheckoutSelectors,
+    type CustomerInitializeOptions,
+    type CustomerRequestOptions,
+    type ExecutePaymentMethodCheckoutOptions,
 } from '@bigcommerce/checkout-sdk';
-import React, { FunctionComponent, memo } from 'react';
+import React, { type FunctionComponent, memo } from 'react';
 
-import { useAnalytics } from '@bigcommerce/checkout/analytics';
-import { CheckoutContextProps } from '@bigcommerce/checkout/payment-integration-api';
+import { type CheckoutContextProps, useAnalytics } from '@bigcommerce/checkout/contexts';
 
 import { withCheckout } from '../../checkout';
 import { PaymentMethodId } from '../../payment/paymentMethod';
-
 
 import BoltCheckoutSuggestion from './BoltCheckoutSuggestion';
 

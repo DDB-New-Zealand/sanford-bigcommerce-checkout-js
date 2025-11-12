@@ -3,10 +3,10 @@ import { getScriptLoader, getStylesheetLoader } from '@bigcommerce/script-loader
 import { getDefaultTranslations, isLanguageWindow } from '@bigcommerce/checkout/locale';
 
 import { isAppExport } from './AppExport';
-import { RenderCheckoutOptions } from './checkout';
+import { type RenderCheckoutOptions } from './checkout';
 import { configurePublicPath } from './common/bundler';
-import { isRecordContainingKey, joinPaths } from './common/utility';
-import { RenderOrderConfirmationOptions } from './order';
+import { isRecordContainingKey, joinPaths, yieldToMain } from './common/utility';
+import { type RenderOrderConfirmationOptions } from './order';
 
 declare const LIBRARY_NAME: string;
 declare const MANIFEST_JSON: AssetManifest;
@@ -16,10 +16,13 @@ export interface AssetManifest {
     css: string[];
     dynamicChunks: { [key: string]: string[] };
     js: string[];
+    integrity: { [key: string]: string };
 }
 
 export interface LoadFilesOptions {
     publicPath?: string;
+    isIntegrityHashExperimentEnabled?: boolean;
+    isCspNonceExperimentEnabled?: boolean;
 }
 
 export interface LoadFilesResult {
@@ -30,27 +33,45 @@ export interface LoadFilesResult {
 
 export function loadFiles(options?: LoadFilesOptions): Promise<LoadFilesResult> {
     const publicPath = configurePublicPath(options && options.publicPath);
+    const isIntegrityHashExperimentEnabled = options?.isIntegrityHashExperimentEnabled ?? true;
+    const isCspNonceExperimentEnabled = options?.isCspNonceExperimentEnabled ?? true;
     const {
         appVersion,
         css = [],
         dynamicChunks: { css: cssDynamicChunks = [], js: jsDynamicChunks = [] },
         js = [],
+        integrity = {},
     } = MANIFEST_JSON;
 
-    const scripts = getScriptLoader().loadScripts(js.map((path) => joinPaths(publicPath, path)));
+    const scripts = Promise.all(js.filter(path => !path.startsWith('loader')).map((path) =>
+        getScriptLoader().loadScript(joinPaths(publicPath, path), {
+            async: false,
+            attributes: isIntegrityHashExperimentEnabled && integrity[path] ? {
+                crossorigin: 'anonymous',
+                integrity: integrity[path],
+            } : {},
+        })
+    ));
 
-    const stylesheets = getStylesheetLoader().loadStylesheets(
-        css.map((path) => joinPaths(publicPath, path)),
-        { prepend: true },
-    );
+    const stylesheets = Promise.all(css.map((path) =>
+        getStylesheetLoader().loadStylesheet(joinPaths(publicPath, path), {
+            prepend: true,
+            attributes: isIntegrityHashExperimentEnabled && integrity[path] ? {
+                crossorigin: 'anonymous',
+                integrity: integrity[path],
+            } : {},
+        })
+    ));
 
     getScriptLoader().preloadScripts(
-        jsDynamicChunks.map((path) => joinPaths(publicPath, path)),
+        jsDynamicChunks
+            .map((path) => joinPaths(publicPath, path)),
         { prefetch: true },
     );
 
     getStylesheetLoader().preloadStylesheets(
-        cssDynamicChunks.map((path) => joinPaths(publicPath, path)),
+        cssDynamicChunks
+            .map((path) => joinPaths(publicPath, path)),
         { prefetch: true },
     );
 
@@ -78,13 +99,19 @@ export function loadFiles(options?: LoadFilesOptions): Promise<LoadFilesResult> 
             initializeLanguageService({
                 ...languageConfig,
                 defaultTranslations,
+                isCspNonceExperimentEnabled,
             });
 
             return {
                 appVersion,
-                renderCheckout: (renderOptions) => renderCheckout({ publicPath, ...renderOptions }),
-                renderOrderConfirmation: (renderOptions) =>
-                    renderOrderConfirmation({ publicPath, ...renderOptions }),
+                renderCheckout: async (renderOptions) => {
+                    await yieldToMain();
+                    renderCheckout({ publicPath, ...renderOptions });
+                },
+                renderOrderConfirmation: async (renderOptions) => {
+                    await yieldToMain();
+                    renderOrderConfirmation({ publicPath, ...renderOptions });
+                },
             };
         },
     );

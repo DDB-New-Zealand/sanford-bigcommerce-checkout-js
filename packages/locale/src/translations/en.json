@@ -16,8 +16,8 @@
             "country_label": "Country",
             "country_required_error": "Country is required",
             "custom_required_error": "{label} is required",
-            "custom_min_error": "{label} should be bigger than {min}",
-            "custom_max_error": "{label} should be smaller than {max}",
+            "custom_min_error": "{label} should be no less than {min} characters",
+            "custom_max_error": "{label} should be no more than {max} characters",
             "invalid_characters_error": "{label} contains invalid characters",
             "custom_valid_error": "{label} is not valid",
             "edit_address_action": "Edit address",
@@ -57,6 +57,7 @@
             "discount_text": "Discount",
             "downloads_action": "Go to Downloads",
             "edit_cart_action": "Edit Cart",
+            "edit_multi_shipping_cart_message": "New items will default to Shipping Destination #1. Reallocate if you want them shipped to other destinations.",
             "estimated_total_text": "Estimated Total",
             "free_text": "Free",
             "gift_certificate_text": "Gift Certificate",
@@ -78,17 +79,24 @@
             "taxes_text": "Taxes",
             "total_text": "Total",
             "empty_cart_message": "Your cart is empty, you are being redirected. Please <a href=\"{url}\" target=\"_top\">click here</a> if your browser does not redirect you.",
-            "consistency_error": "Your checkout could not be processed because some details have changed. Please review your order and try again."
+            "consistency_error": "Your checkout could not be processed because some details have changed. Please review your order and try again.",
+            "empty_cart_error_message": "Your cart contains items that aren't available for purchase or have exceeded the purchase limit. To place your order, please create a new cart with the quantities to the allowed limit or with different items."
         },
         "common": {
+            "back_action": "Back",
+            "confirm_action": "Confirm",
             "cancel_action": "Cancel",
             "close_action": "Close",
             "continue_action": "Continue",
+            "change_action": "Change",
+            "proceed_action": "Proceed",
             "edit_action": "Edit",
             "delete_action": "Delete",
             "error_heading": "Something's gone wrong",
             "leave_warning": "Are you sure you want to leave? Data you have entered may not be saved.",
             "loading_text": "Loading",
+            "missing_shipping_method_heading": "Shipping method unavailable",
+            "invalid_shipping_address": "Invalid shipping address",
             "ok_action": "Ok",
             "error_code": "Error code:",
             "request_id": "Request ID:",
@@ -141,7 +149,7 @@
             "password_confirmation_label": "Confirm Password",
             "password_confirmation_required_error": "This field is required",
             "password_label": "Password",
-            "password_letter_required_error": "Password needs to contain a letter",
+            "password_letter_required_error": "",
             "password_minimum_character_label": "character minimum, case sensitive",
             "password_number_required_error": "Password needs to contain a number",
             "password_over_maximum_length_error": "Password is too long",
@@ -162,7 +170,7 @@
             "error_server": "We couldn't send you a sign-in link. Please try again.",
             "error_not_found": "The entered email is not associated to an account. Please try with a different email.",
             "sent_header": "Check your inbox",
-            "sent_text": "Your sign-in link is on its way to <strong>{email}</strong>. This link expires in 15 minutes. If you don’t see it, check your junk folder.",
+            "sent_text": "If the entered email address is associated with this store, you will receive a sign-in link shortly. This link expires in 15 minutes. If you don't see it, check your junk folder.",
             "text": "Enter the email address associated to your account. We will send you a sign-in link.",
             "header": "Account sign-in link",
             "header_with_email": "Confirm your email address",
@@ -198,7 +206,13 @@
                 "label": "Account Number",
                 "is_required": "Account Number is required",
                 "only_numbers": "Account Number must contain only numbers",
-                "length": "Account Number must have at least 8 digits"
+                "length": "Account Number must have at least 4 digits",
+                "length_max": "Account Number must have at least 17 digits"
+            },
+            "bluesnap_direct_iban": {
+                "label": "IBAN",
+                "is_required": "IBAN is required",
+                "length": "IBAN must have at least 8 digits"
             },
             "bluesnap_direct_routing_number": {
                 "label": "Routing Number",
@@ -206,12 +220,21 @@
                 "only_numbers": "Routing Number must contain only numbers",
                 "length": "Routing Number must be 9 digits long"
             },
+            "bluesnap_direct_company_name": {
+               "length_max": "Company Name is too long"
+            },
             "bluesnap_direct_account_type": {
                 "label": "Account Type",
                 "is_required": "Account Type is required"
             },
+            "ideal": {
+                "label": "Your Bank"
+            },
             "bluesnap_direct_permission": "I authorize this Electronic Check (ACH/ECP) transaction and agree to this debit of my account.",
+            "bluesnap_direct_sepa_mandate_disclaimer": "By signing this mandate form, you authorise (A) {creditorName} to send instructions to your bank to debit your account and (B) your bank to debit your account in accordance with the instructions from {creditorName}. As part of your rights, you are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited.",
             "bluesnap_direct_electronic_check_label": "Electronic Check (ACH/ECP)",
+            "bluesnap_direct_sepa_direct_debit": "Sepa Direct Debit",
+            "bluesnap_direct_local_bank_transfer_label": "Local Bank Transfer",
             "bolt_benefit_1": "Shop hundreds of brands with a passwordless login",
             "bolt_benefit_2": "Check out with saved payment and shipping details",
             "bolt_benefit_3": "Benefit from PCI-compliant account security",
@@ -222,12 +245,6 @@
             "braintreeach_vaulting_mandate_text": "By clicking Place Order, I authorize Braintree, a service of PayPal, on behalf of {storeName} to verify my bank account information using bank information and consumer reports and I authorize {storeName} to initiate an ACH/electronic debit to my {accountType} account, Depository Name: {depositoryName}, Routing Number: {routingNumber} and Account Number: {accountNumber}, that will be stored on file, and debited on or after the due date. I agree the ACH transactions I authorize comply with all applicable laws.",
             "complete_with_brand": "Complete order",
             "continue_with_brand": "Continue with {brandName}",
-            "ccavenuemars_description_text": "Checkout with CCAvenue",
-            "chasepay_continue_action": "Continue with Chase Pay",
-            "chasepay_name_text": "Chase Pay",
-            "chasepay_edit_card": "Edit card",
-            "chasepay_logout": "Log out Chase Pay",
-            "chasepay_fail_load": "Chase Pay failed to load",
             "checkoutcom_document_label_boleto": "CPF or CNPJ",
             "checkoutcom_document_label_oxxo": "CURP",
             "checkoutcom_document_label_qpay": "National ID",
@@ -257,17 +274,17 @@
             "credit_card_expiration_placeholder_text": "MM / YY",
             "credit_card_name_label": "Name on Card",
             "credit_card_name_required_error": "Full name is required",
+            "credit_card_name_invalid_error": "Credit Card Name must be valid",
             "credit_card_number_invalid_error": "Credit Card Number must be valid",
             "credit_card_number_label": "Credit Card Number",
             "credit_card_number_last_four": "Enter card number for {cardType} ending in {lastFour}",
             "credit_card_number_required_error": "Credit Card Number is required",
             "credit_card_number_mismatch_error": "The card number entered does not match the card stored in your account",
             "credit_debit_card_text": "Credit/Debit Card",
+            "payment_methods_text": "Payment Methods",
+            "redeemable_payments_text": "Redeemable Payments",
+            "instrument_storage_options_text": "Payment Storage Options",
             "stripev3_auth_3ds_fail": "User did not authenticate",
-            "digitalriver_dropin_error": "There was an error while processing your payment. Please try again or contact us.",
-            "digitalriver_checkout_error": "There was a problem with your checkout, please check your details and try again or contact customer service",
-            "digitalriver_checkout_error_title": "Error while processing request.",
-            "digitalriver_display_name_text": "Please select your payment method",
             "google_pay_name_text": "Google Pay",
             "humm_not_processable_error": "Humm cannot process your payment for this order, please select another payment method.",
             "klarna_continue_action": "Continue with Klarna",
@@ -307,10 +324,12 @@
             "ideal_bic_required": "You must select an issuer to place the order",
             "instrument_text": "Stored credit cards",
             "instrument_add_card_action": "Use a different card",
+            "instrument_account_number_ending": "Account number ending in: {accountNumber}",
             "instrument_default_ending_in_text": "Card ending in {endingIn}",
             "instrument_ending_in_text": "{cardTitle} ending in {endingIn}",
             "instrument_expired_text": "Expired {expiryDate}",
             "instrument_expires_text": "Expires {expiryDate}",
+            "instrument_issuer": "Issuer",
             "instrument_manage_button": "Manage",
             "instrument_manage_modal_confirmation_action": "Yes, delete",
             "instrument_manage_modal_confirmation_label": "Are you sure you want to delete this stored payment method?",
@@ -330,14 +349,17 @@
             "account_instrument_save_as_default_payment_method_label": "Use this account as the default payment method for future transactions",
             "account_instrument_text": "Stored accounts",
             "account_instrument_new_shipping_address": "<strong>We noticed this is a new shipping address.</strong><p>For security reasons, you will need to re-link your PayPal account when shipping to an address for the first time or if the shipping address was edited recently.</p>",
+            "bank_account_instrument_trusted_shipping_address_text": "This additional security step is applied to your account when shipping to an address for the first time or if the shipping address was edited recently.",
+            "bank_account_instrument_trusted_shipping_address_title_text": "Please re-enter your account data to authorize this transaction.",
             "instrument_trusted_shipping_address_text": "This additional security step is applied to your card when shipping to an address for the first time or if the shipping address was edited recently.",
             "instrument_trusted_shipping_address_title_text": "Please re-enter your card number to authorize this transaction.",
             "quadpay_continue_action": "Continue with Zip",
-            "quadpay_display_name_text": "Pay in 4 installments",
+            "quadpay_display_name_text": "Pay in installments",
             "ppsdk_continue_action": "Continue with {methodName}",
             "select_your_bank": "Select your bank",
             "sepa_account_number": "Account Number (IBAN)",
             "sepa_account_number_required": "You must enter your account number (IBAN)",
+            "pay_by_bank_iban_required": "You must enter your account number (IBAN)",
             "sepa_bic": "BIC",
             "sepa_bic_length": "BIC must be 8 or 11 characters",
             "sepa_mandate_required": "You must accept the mandate form",
@@ -355,9 +377,11 @@
             "account_type_label": "Account Type",
             "ownership_type_label": "Ownership Type",
             "business_name_label": "Business Name",
+            "phone_number_label": "Phone Number",
             "errors": {
                 "account_number_required_error": "Account Number is required",
                 "routing_number_required_error": "Routing Number is required",
+                "phone_number_required_error": "Phone Number is required",
                 "business_name_required_error": "Business Name is required",
                 "only_numbers_error": "{label} must contain only numbers",
                 "additional_action_required": "Please continue with additional actions.",
@@ -373,6 +397,7 @@
                 "expired_card": "Your card has expired. Please try again with a valid card.",
                 "gateway_error": "Something went wrong on the server. Please try again at a later time.",
                 "general_error": "Error while processing payment request.",
+                "google_pay_try_other_card": "Select a different card or log out of Google Pay to try the payment again.",
                 "hosted_form_error": "Unable to process the payment because invalid data was supplied with the transaction.",
                 "incorrect_address": "Your billing address couldn't be verified. Please check your billing address details and try again.",
                 "incorrect_amount": "Unable to process the payment because invalid data was supplied with the transaction.",
@@ -381,6 +406,7 @@
                 "incorrect_zip": "Your billing address couldn't be verified. Please check your billing address details and try again.",
                 "insufficient_funds": "Payment was declined. Please contact your bank.",
                 "invalid_address": "Your billing address couldn't be verified. Please check your billing address details and try again.",
+                "instrument_declined": "We would like to inform you that the total amount for your order has been adjusted from the initially confirmed sum with PayPal. This modification is in adherence to the regulations and safeguards set forth by the Second Payment Services Directive (PSD2). To proceed with the completion of your order, we kindly request your confirmation of the new total by clicking on the 'PayPal Checkout' button situated at the bottom of the page.",
                 "invalid_amount": "There was an error while processing your payment. Please try again or contact us.",
                 "invalid_authorization_code": "There was an error while processing your payment. Please try again or contact us.",
                 "invalid_create_instrument_request": "Unable to process the payment because invalid data was supplied with the transaction.",
@@ -398,6 +424,7 @@
                 "invalid_request_error": "We're experiencing difficulty processing your transaction. Please contact us or try again later.",
                 "invalid_user_authentication": "There was an error while processing your payment. Please contact us.",
                 "invalid_zip": "Unable to process the payment because invalid data was supplied with the transaction.",
+                "invalid_phone_number": "Phone Number is invalid.",
                 "journal_error": "Something went wrong on the server. Please try again at a later time.",
                 "lost_or_stolen_card": "Unable to process the payment because invalid data was supplied with the transaction.",
                 "missing_test_mode": "Unable to process the request because invalid data was supplied with the transaction.",
@@ -428,6 +455,19 @@
                 "user_authorization_error": "There was an error while processing your payment. Please contact us.",
                 "vaulting_service_unavailable": "Vaulting service is currently not available.",
                 "voided_transaction": "Unable to process your payment because the transaction has already been voided. Please try again or contact us."
+            },
+            "ratepay": {
+                "payment_method_title": "Pay upon Invoice",
+                "phone_country_code": "Country code",
+                "phone_number": "Phone number",
+                "birth_date": "Date of birth",
+                "errors": {
+                    "isRequired": "{fieldName} is required",
+                    "isInvalid": "{fieldName} is invalid",
+                    "paymentSourceInfoCannotBeVerified": "The combination of your name and address could not be validated. Please correct your data and try again. You can find further information in the <a href='https://www.ratepay.com/en/ratepay-data-privacy-statement/' target='blank'>Ratepay Data Privacy Statement</a> or you can contact Ratepay using this <a href='https://www.ratepay.com/en/contact/' target='blank'>contact form.</a>",
+                    "paymentSourceDeclinedByProcessor": "It is not possible to use the selected payment method. This decision is based on automated data processing. You can find further information in the <a href='https://www.ratepay.com/en/ratepay-data-privacy-statement/' target='blank'>Ratepay Data Privacy Statement</a> or you can contact Ratepay using this <a href='https://www.ratepay.com/en/contact/' target='blank'>contact form.</a>",
+                    "itemCategoryNotSupportedByPaymentSource": "Digital items are not supported for given method"
+                }
             }
         },
         "redeemable": {
@@ -461,7 +501,8 @@
             "sign_out_after_action": "to view other payment methods",
             "sign_in_required_error": "Remote sign in required before payment",
             "sign_out_before_action": "",
-            "start_with_text": "Check out faster with:"
+            "start_with_text": "Check out faster with:",
+            "powered_by": "Powered by"
         },
         "shipping": {
             "cart_change_error": "An update to your shopping cart has been detected and your available shipping costs have been updated. Please re-select a shipping method to continue.",
@@ -475,18 +516,54 @@
             "save_shipping_option_error": "An error occurred while saving the shipping quote to your order. Please try again.",
             "select_shipping_address_text": "Please select a shipping address in order to see shipping quotes",
             "shipping_address_heading": "Shipping Address",
+            "multishipping_consignment_index_heading": "Destination #{consignmentNumber}",
+            "multishipping_incomplete_consignment_error": "Please complete the address, item allocation, and method selection for Destination #{consignmentNumber}.",
+            "multishipping_add_new_destination": "Add new destination",
             "multishipping_address_heading": "Choose where to ship each item",
             "multishipping_address_heading_guest": "Please sign in first",
             "multishipping_guest_intro": "To ship your items to multiple addresses you need to",
             "multishipping_guest_sign_in": "sign in to your account",
             "multishipping_guest_create": "or <a href=\"{url}\" target=\"_blank\">create an account</a> prior to proceeding.",
+            "multishipping_item_to_allocate_message": "{count, plural, one{1 item left to allocate} other{{count} items left to allocate}}",
+            "multishipping_item_allocated_message": "{count, plural, one{1 item allocated} other{{count} items allocated}}",
+            "multishipping_item_reallocated_message": "Reallocate items",
+            "multishipping_item_hide_items_message": "Hide items",
+            "multishipping_item_show_items_message": "Show items",
+            "multishipping_left_to_allocate_message": "{count} left to allocate",
+            "multishipping_items_selected_message": "{count} items selected",
+            "multishipping_items_allocate_save": "Save",
+            "multishipping_items_allocate_allocate": "Allocate",
+            "multishipping_items_allocate_cancel": "Cancel",
+            "multishipping_items_allocate_clear_all": "Clear all",
+            "multishipping_items_allocate_select_all_items_left": "Select all items left",
+            "multishipping_all_items_allocated_message": "All items are allocated.",
+            "multishipping_no_item_allocated_message": "No item allocated",
+            "multishipping_allocate_items": "Allocate items",
+            "multishipping_digital_item_no_shipping_banner": "Shipping isn't required for digital products, thus it's not displayed here.",
+            "multishipping_left_to_allocate_items_table_item": "Item",
+            "multishipping_left_to_allocate_items_table_left_to_allocate": "Left to allocate",
+            "multishipping_left_to_allocate_items_table_quantity": "Quantity",
+            "multishipping_item_split_tooltip_message": "These item quantities are split into a separate row due to a quantity-based promotion or custom price.",
             "ship_to_multi": "Ship to multiple addresses",
             "ship_to_single": "Ship to a single address",
+            "ship_to_single_action": "Ship to a Single Address instead",
+            "ship_to_single_message": "If you proceed, all progress for multiple addresses will be lost. This action cannot be undone.",
             "shipping_heading": "Shipping",
             "shipping_method_label": "Shipping Method",
             "shipping_option_expired_error": "The shipping price you were quoted is no longer valid. Click OK to see the most up-to-date shipping prices.",
             "shipping_option_expired_heading": "Your shipping price has been updated",
-            "view_shipping_options_action": "See Other Options"
+            "view_shipping_options_action": "See Other Options",
+            "quantity_required_error": "Quantity is required",
+            "quantity_invalid_error": "Quantity must be a number",
+            "quantity_max_error": "Quantity cannot exceed \"Left to allocate\" amount.",
+            "quantity_min_error": "Quantity cannot be less than 0",
+            "custom_item_quantity_error": "All quantities of this custom product must be allocated to the same destination, as it was created specifically for this draft order.",
+            "choose_shipping_address": "Choose a shipping address",
+            "multishipping_unavailable_action": "Multi-Address Shipping Unavailable",
+            "multishipping_unavailable_message": "Multi-address shipping is unavailable when a promotion adds a free item to your cart.",
+            "checkout_switched_to_single_shipping": "Your checkout has been automatically updated to use a single shipping address. Shipping to multiple addresses is unavailable when a promotional free item is in your cart.",
+            "guest_multishipping_no_shipping_address_message": "No shipping address entered",
+            "guest_multishipping_enter_shipping_address_action": "Enter shipping address"
         },
         "social": {
             "share_action": "Share",
@@ -501,6 +578,9 @@
             "label": "Yes, I agree with the <a href=\"{url}\" target=\"_blank\">privacy policy</a>.",
             "heading": "Privacy Policy"
         },
+        "privacy_policy_auto_consent": {
+            "label": "*By clicking continue, you agree to our  <a href=\"{url}\" target=\"_blank\">privacy policy</a>."
+        },
         "tax": {
             "inclusive_label": "Tax Included in Total:"
         },
@@ -512,6 +592,12 @@
         },
         "order_confirmation": {
             "mandate": {
+                "adyenv3": {
+                    "boletobancario": "Boleto Bancário Ticket"
+                },
+                "bluesnapdirect": {
+                    "sepa_direct_debit":  "SEPA Direct Debit Mandate Reference: {mandate}"
+                },
                 "checkoutcom": {
                     "boleto": "Boleto Bancário Ticket",
                     "oxxo": "OXXO Ticket",
@@ -527,7 +613,12 @@
                     "sepa_debit": "SEPA Direct Debit Mandate"
                 },
                 "paypalcommercealternativemethods": {
-                    "oxxo": "OXXO Ticket"
+                    "oxxo": "OXXO Ticket",
+                    "ratepay": {
+                        "account_holder_name": "Account Holder",
+                        "iban": "Iban",
+                        "payment_reference": "Payment Reference"
+                    }
                 }
             },
             "order_number_text": "Your order number is <strong>{orderNumber}</strong>",

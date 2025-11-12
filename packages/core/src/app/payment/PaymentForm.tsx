@@ -1,14 +1,16 @@
-import { PaymentMethod } from '@bigcommerce/checkout-sdk';
-import { FormikProps, withFormik, WithFormikConfig } from 'formik';
+import { ExtensionRegion, type PaymentMethod } from '@bigcommerce/checkout-sdk/essential';
+import { type FormikProps, type FormikState, withFormik, type WithFormikConfig } from 'formik';
 import { isNil, noop, omitBy } from 'lodash';
-import React, { FunctionComponent, memo, useCallback, useContext, useMemo } from 'react';
-import { ObjectSchema } from 'yup';
+import React, { type FunctionComponent, memo, useCallback, useContext, useMemo } from 'react';
+import { type ObjectSchema } from 'yup';
 
-import { withLanguage, WithLanguageProps } from '@bigcommerce/checkout/locale';
-import { PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
+import { Extension } from '@bigcommerce/checkout/checkout-extension';
+import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
+import { type PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
+import { FormContext } from '@bigcommerce/checkout/ui';
 
 import { TermsConditions } from '../termsConditions';
-import { Fieldset, Form, FormContext } from '../ui/form';
+import { Fieldset, Form, Legend } from '../ui/form';
 
 import getPaymentValidationSchema from './getPaymentValidationSchema';
 import {
@@ -183,7 +185,7 @@ interface PaymentMethodListFieldsetProps {
     isPaymentDataRequired(): boolean;
     onMethodSelect?(method: PaymentMethod): void;
     onUnhandledError?(error: Error): void;
-    resetForm(nextValues?: PaymentFormValues): void;
+    resetForm(nextValues?: Partial<FormikState<PaymentFormValues>>): void;
 }
 
 const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProps> = ({
@@ -199,12 +201,10 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
 }) => {
     const { setSubmitted } = useContext(FormContext);
 
-    const commonValues = useMemo(() => ({ terms: values.terms }), [values.terms]);
-
     const handlePaymentMethodSelect = useCallback(
         (method: PaymentMethod) => {
-            resetForm({
-                ...commonValues,
+            const updatedValues = {
+                ...values,
                 ccCustomerCode: '',
                 ccCvv: '',
                 ccDocument: '',
@@ -217,19 +217,26 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
                 paymentProviderRadio: getUniquePaymentMethodId(method.id, method.gateway),
                 shouldCreateAccount: true,
                 shouldSaveInstrument: false,
-                accountNumber: '',
-                routingNumber: '',
-            });
+            };
 
+            resetForm({ values: updatedValues });
             setSubmitted(false);
             onMethodSelect(method);
         },
-        [commonValues, onMethodSelect, resetForm, setSubmitted],
+        [values, onMethodSelect, resetForm, setSubmitted],
     );
 
     return (
-        <Fieldset>
+        <Fieldset
+            legend={
+                <Legend hidden>
+                    <TranslatedString id="payment.payment_methods_text" />
+                </Legend>
+            }
+        >
             {!isPaymentDataRequired() && <StoreCreditOverlay />}
+
+            <Extension region={ExtensionRegion.PaymentPaymentMethodListBefore}/>
 
             <PaymentMethodList
                 isEmbedded={isEmbedded}

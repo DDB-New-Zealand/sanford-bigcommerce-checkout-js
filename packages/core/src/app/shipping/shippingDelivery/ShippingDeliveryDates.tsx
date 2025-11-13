@@ -44,7 +44,7 @@ const DateSelectButton: FunctionComponent<{selectedDate: string | null}> = ({ se
         <a
             aria-controls="datesDropdown"
             aria-expanded={ariaExpanded}
-            // aria-label={language.translate('address.enter_or_select_address_action')}
+            aria-label='Select delivery date'
             className="button dropdown-button dropdown-toggle--select"
             data-test="dates-select-button"
             href="#"

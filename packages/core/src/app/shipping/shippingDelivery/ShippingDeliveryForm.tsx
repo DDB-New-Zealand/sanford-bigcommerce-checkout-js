@@ -22,16 +22,15 @@ export interface ShippingDeliveryFormValues {
 }
 
 const ShippingDeliveryForm = (props: ShippingDeliveryFormProps & FormikProps<ShippingDeliveryFormValues>): ReactElement => {
-    const { fetchAvailableDates } = useSanford();
+    const { fetchAvailableDates, updateDeliveryOption } = useSanford();
     const [ availableDates, setAvailableDates ] = useState<DeliveryDate[]>([]);
     const [isFetchingDates, setIsFetchingDates] = useState<boolean>(false);
+    const [isSubscription, setIsSubscription] = useState<boolean>(false);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [selectedFrequency, setSelectedFrequency] = useState<string | null>(null);
     
     const {
         cart,
-        isSubscription,
-        methodId,   
     } = props;
     // const { analyticsTracker } = useAnalytics();
 
@@ -63,14 +62,43 @@ const ShippingDeliveryForm = (props: ShippingDeliveryFormProps & FormikProps<Shi
         setIsFetchingDates(true);
 
         fetchAvailableDates().then((response) => {
-            const { result: { isSubscription, selectedDate, selectedFrequency, dates } } = response;
+            console.debug('Fetched available dates:', response);
+
+            const { result: { isSubscription: subscription, selectedDate, selectedFrequency, dates } } = response;
             
             setAvailableDates(dates);
             setSelectedDate(selectedDate || dates[0]?.date || null);
             setSelectedFrequency(selectedFrequency);
+            setIsSubscription(subscription);
+        }).finally(() => {
             setIsFetchingDates(false);
         });    
     }, []);
+
+    const handleSelectDate = (date: string) => {
+        setSelectedDate(date);
+        
+        console.debug('Selected date:', {
+            isSubscription,
+            deliveryDate: date,
+            frequency: selectedFrequency || '',
+            cartId: cart.id,
+            customerId: String(cart.customerId),
+        });
+
+        updateDeliveryOption({
+            isSubscription,
+            deliveryDate: date,
+            frequency: selectedFrequency || '',
+            cartId: cart.id,
+            customerId: String(cart.customerId),
+        }).then(() => {
+            console.debug('Updated delivery option with date:', date);
+        }).catch((error) => {
+            console.error('Error updating delivery option:', error);
+        });
+
+    }
 
     // useEffect(() => {
     //     if (consignments?.length && shouldShowShippingOptions) {
@@ -84,13 +112,12 @@ const ShippingDeliveryForm = (props: ShippingDeliveryFormProps & FormikProps<Shi
     //     }
     // }, [shippingFormRenderTimestamp]);
 
-
     return (
         <>
             {
             isFetchingDates ? <NoShippingDelivery isLoading={isFetchingDates} message="Loading available dates..." />
             : <>
-                <ShippingDate dates={availableDates} />
+                <ShippingDate dates={availableDates} handleSelectDate={handleSelectDate} selectedDate={selectedDate} />
                 {isSubscription ? <ShippingFrequency /> : null}
             </>
         }
@@ -102,5 +129,4 @@ const ShippingDeliveryForm = (props: ShippingDeliveryFormProps & FormikProps<Shi
 
 export default withFormikExtended<ShippingDeliveryFormProps, ShippingDeliveryFormValues>({
     handleSubmit: noop,
-    mapPropsToValues: getShippingDeliveryIds,
 })(ShippingDeliveryForm);

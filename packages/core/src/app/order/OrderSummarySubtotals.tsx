@@ -95,9 +95,11 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                 label={<TranslatedString id="cart.shipping_text" />}
                 testId="cart-shipping"
                 zeroLabel={<TranslatedString id="cart.free_text" />}
-            />
+                />
 
-            <OrderSummaryDelivery />
+            <OrderSummaryDelivery 
+                testId="cart-delivery"
+            />
 
             {!!handlingAmount && (
                 <OrderSummaryPrice

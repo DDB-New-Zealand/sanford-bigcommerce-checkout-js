@@ -1,9 +1,9 @@
-import { type Cart, type CheckoutSelectors } from '@bigcommerce/checkout-sdk';
-import { createSelector } from 'reselect';
+import { type Cart } from '@bigcommerce/checkout-sdk';
 
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
 
 import { withCheckout } from '../../checkout';
+import { SANFORD_CONFIG } from '../../sanford/config';
 import getShippingMethodId from '../getShippingMethodId';
 
 import ShippingDeliveryForm from './ShippingDeliveryForm';
@@ -18,7 +18,7 @@ import ShippingDeliveryForm from './ShippingDeliveryForm';
 
 export interface WithCheckoutShippingDeliveryProps {
     cart: Cart;
-    isSubscription: boolean
+    // isSubscription: boolean
     methodId: string | undefined;
 }
 
@@ -35,46 +35,17 @@ export interface ShippingDeliveryProps {
     shippingFormRenderTimestamp?: number;
 }
 
-export const isLoadingSelector = createSelector(
-    (_: CheckoutSelectors, isUpdatingAddress?: boolean) => isUpdatingAddress,
-    ({ statuses }: CheckoutSelectors) => statuses.isLoadingShippingOptions,
-    ({ statuses }: CheckoutSelectors) => statuses.isSelectingShippingOption,
-    ({ statuses }: CheckoutSelectors) => statuses.isUpdatingConsignment,
-    ({ statuses }: CheckoutSelectors) => statuses.isCreatingConsignments,
-    (
-        isUpdatingAddress,
-        isLoadingShippingOptions,
-        isSelectingShippingOption,
-        isUpdatingConsignment,
-        isCreatingConsignments,
-    ) => {
-        return (consignmentId?: string) => {
-            return (
-                isUpdatingAddress ||
-                isLoadingShippingOptions() ||
-                isSelectingShippingOption(consignmentId) ||
-                isUpdatingConsignment(consignmentId) ||
-                isCreatingConsignments()
-            );
-        };
-    },
-);
-
-
-// Check for cart's lineItems->physicalItems[]->options[]->valueId === 99 (value: "Subscription")
-const getPurchaseType = (cart: Cart): boolean => {
-    return cart.lineItems.physicalItems.some(item =>
-        item.options?.some(option => option.valueId === 99)
-    );
-}
+// const getPurchaseType = (cart: Cart): boolean => {
+//     return cart.lineItems.physicalItems.some(item =>
+//         item.options?.some(option => option.valueId === SANFORD_CONFIG.SUBSCRIPTION_VARIANT_ID)
+//     );
+// }
 
 export function mapToShippingDelivery(
     { checkoutState }: CheckoutContextProps,
-    // props: ShippingDeliveryProps,
 ): WithCheckoutShippingDeliveryProps | null {
     const {
         data: { getCart, getConfig, getCustomer, getCheckout },
-        statuses,
     } = checkoutState;
     
     const customer = getCustomer();
@@ -87,12 +58,11 @@ export function mapToShippingDelivery(
         return null;
     }
     
-    const isSubscription = getPurchaseType(cart);
+    // const isSubscription = getPurchaseType(cart);
     const methodId = getShippingMethodId(checkout, config);
     
     return {
         cart,
-        isSubscription,
         methodId,
     };
 }

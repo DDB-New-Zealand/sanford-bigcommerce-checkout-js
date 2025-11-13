@@ -6,6 +6,7 @@ import { TranslatedString } from '@bigcommerce/checkout/locale';
 import isOrderFee from "./isOrderFee";
 import OrderSummaryDiscount from './OrderSummaryDiscount';
 import OrderSummaryPrice from './OrderSummaryPrice';
+import OrderSummaryDelivery from './OrderSummaryDelivery';
 
 export interface OrderSummarySubtotalsProps {
     coupons: Coupon[];
@@ -95,6 +96,8 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                 testId="cart-shipping"
                 zeroLabel={<TranslatedString id="cart.free_text" />}
             />
+
+            <OrderSummaryDelivery />
 
             {!!handlingAmount && (
                 <OrderSummaryPrice

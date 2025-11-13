@@ -10,6 +10,7 @@ import { Alert, AlertType } from '../ui/alert';
 import { Button, ButtonVariant } from '../ui/button';
 import { Fieldset, Legend } from '../ui/form';
 
+import { ShippingDelivery } from './shippingDelivery';
 import { ShippingOptions } from './shippingOption';
 
 export interface ShippingFormFooterProps {
@@ -34,7 +35,7 @@ const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
     shippingFormRenderTimestamp,
 }) => {
     const { themeV2 } = useThemeContext();
-
+    
     return (
         <>
             <Extension region={ExtensionRegion.ShippingShippingAddressFormAfter} />
@@ -63,6 +64,16 @@ const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
                     shippingFormRenderTimestamp={shippingFormRenderTimestamp}
                     shouldShowShippingOptions={shouldShowShippingOptions}
                 />
+            </Fieldset>
+
+            <Fieldset id="checkout-shipping-delivery-options">
+              <ShippingDelivery
+                  isInitialValueLoaded={isInitialValueLoaded}
+                  isMultiShippingMode={isMultiShippingMode}
+                  isUpdatingAddress={isLoading}
+                  shippingFormRenderTimestamp={shippingFormRenderTimestamp}
+                  shouldShowShippingOptions={shouldShowShippingOptions}
+              />
             </Fieldset>
 
             {shouldShowOrderComments && <OrderComments />}

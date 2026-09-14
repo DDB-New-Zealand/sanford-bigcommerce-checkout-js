@@ -1,14 +1,18 @@
-import { type CheckoutSelectors, type CustomerRequestOptions, type CustomError } from '@bigcommerce/checkout-sdk';
-import classNames from 'classnames';
+import {
+    type CheckoutSelectors,
+    type CustomerRequestOptions,
+    type CustomError,
+} from '@bigcommerce/checkout-sdk';
 import { noop } from 'lodash';
 import React, { type FunctionComponent } from 'react';
 
-import { type CheckoutContextProps, useThemeContext } from '@bigcommerce/checkout/contexts';
+import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
+import { assignLocation } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
+import { Button, ButtonSize, ButtonVariant } from '@bigcommerce/checkout/ui';
 
 import { withCheckout } from '../checkout';
 import { isErrorWithType } from '../common/error';
-import { Button, ButtonSize, ButtonVariant } from '../ui/button';
 
 import canSignOut, { isSupportedSignoutMethod } from './canSignOut';
 
@@ -44,12 +48,10 @@ const CustomerInfo: FunctionComponent<CustomerInfoProps & WithCheckoutCustomerIn
     onSignOutError = noop,
     signOut,
 }) => {
-    const { themeV2 } = useThemeContext();
-
     const handleSignOut: () => Promise<void> = async () => {
         try {
             if (shouldRedirectToStorefrontForAuth) {
-                window.location.assign(`${logoutLink}?redirectTo=${checkoutLink}`);
+                assignLocation(`${logoutLink}?redirectTo=${checkoutLink}`);
 
                 return;
             }
@@ -74,9 +76,7 @@ const CustomerInfo: FunctionComponent<CustomerInfoProps & WithCheckoutCustomerIn
     return (
         <div className="customerView" data-test="checkout-customer-info">
             <div
-                className={classNames('customerView-body',
-                    { 'body-regular': themeV2 },
-                )}
+                className="customerView-body optimizedCheckout-contentPrimary body-regular"
                 data-test="customer-info"
             >
                 {email}
@@ -85,7 +85,7 @@ const CustomerInfo: FunctionComponent<CustomerInfoProps & WithCheckoutCustomerIn
             <div className="customerView-actions">
                 {isSignedIn && (
                     <Button
-                        className={themeV2 ? 'body-regular' : ''}
+                        className="optimizedCheckout-contentPrimary body-regular"
                         isLoading={isSigningOut}
                         onClick={handleSignOut}
                         size={ButtonSize.Tiny}
@@ -118,7 +118,10 @@ function mapToWithCheckoutCustomerInfoProps({
         return null;
     }
 
-    const { checkoutSettings, links: { checkoutLink, logoutLink } } = config;
+    const {
+        checkoutSettings,
+        links: { checkoutLink, logoutLink },
+    } = config;
 
     const methodId =
         checkout.payments && checkout.payments.length === 1 ? checkout.payments[0].providerId : '';

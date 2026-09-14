@@ -1,23 +1,25 @@
-
 import { type Cart, type Consignment } from '@bigcommerce/checkout-sdk';
 import React, { type FunctionComponent, memo } from 'react';
 
+import { useThemeContext } from '@bigcommerce/checkout/contexts';
+
 import StaticConsignment from './StaticConsignment';
+import StaticConsignmentV2 from './StaticConsignmentV2';
 import StaticMultiConsignment from './StaticMultiConsignment';
 
 interface ShippingSummaryProps {
-    isShippingDiscountDisplayEnabled: boolean;
     isMultiShippingMode: boolean;
     consignments: Consignment[];
     cart: Cart;
 }
 
 const ShippingSummary: FunctionComponent<ShippingSummaryProps> = ({
-    isShippingDiscountDisplayEnabled,
     isMultiShippingMode,
     consignments,
-    cart
+    cart,
 }) => {
+    const { enhancedThemeV1 } = useThemeContext();
+
     if (isMultiShippingMode) {
         return (
             <>
@@ -27,7 +29,6 @@ const ShippingSummary: FunctionComponent<ShippingSummaryProps> = ({
                             cart={cart}
                             consignment={consignment}
                             consignmentNumber={index + 1}
-                            isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
                         />
                     </div>
                 ))}
@@ -39,12 +40,11 @@ const ShippingSummary: FunctionComponent<ShippingSummaryProps> = ({
         <>
             {consignments.map((consignment) => (
                 <div className="staticConsignmentContainer" key={consignment.id}>
-                    <StaticConsignment
-                        cart={cart}
-                        compactView={consignments.length < 2}
-                        consignment={consignment}
-                        isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
-                    />
+                    {enhancedThemeV1 ? (
+                        <StaticConsignmentV2 consignment={consignment} />
+                    ) : (
+                        <StaticConsignment consignment={consignment} />
+                    )}
                 </div>
             ))}
         </>

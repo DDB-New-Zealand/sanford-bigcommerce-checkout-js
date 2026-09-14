@@ -4,6 +4,7 @@ import {
     createEmbeddedCheckoutMessenger,
     type EmbeddedCheckoutMessenger,
 } from '@bigcommerce/checkout-sdk';
+import * as jestDomMatchers from '@testing-library/jest-dom/matchers';
 import userEvent from '@testing-library/user-event';
 import { noop } from 'lodash';
 import React, { act, type FunctionComponent } from 'react';
@@ -13,37 +14,56 @@ import {
     type AnalyticsContextProps,
     type AnalyticsEvents,
     AnalyticsProviderMock,
+    CapabilitiesContext,
     CheckoutProvider,
+    defaultCapabilities,
     ExtensionProvider,
     type ExtensionServiceInterface,
     LocaleProvider,
     ThemeProvider,
 } from '@bigcommerce/checkout/contexts';
+import { reloadLocation, replaceLocation } from '@bigcommerce/checkout/dom-utils';
 import { getLanguageService } from '@bigcommerce/checkout/locale';
-import {
-    CHECKOUT_ROOT_NODE_ID,
-} from '@bigcommerce/checkout/payment-integration-api';
+import { CHECKOUT_ROOT_NODE_ID } from '@bigcommerce/checkout/payment-integration-api';
 import {
     CheckoutPageNodeObject,
     CheckoutPreset,
+    checkoutSettings,
     checkoutWithBillingEmail,
+    checkoutWithShipping,
+    checkoutWithShippingAndBilling,
     checkoutWithShippingDiscount,
     consignmentAutomaticDiscount,
     consignmentCouponDiscount,
+    shippingAddress,
 } from '@bigcommerce/checkout/test-framework';
 import { renderWithoutWrapper as render, screen, waitFor } from '@bigcommerce/checkout/test-utils';
+import { CannotCreatePersonalAccountSessionStorage } from '@bigcommerce/checkout/utility';
 
 import { createErrorLogger } from '../common/error';
 import {
     createEmbeddedCheckoutStylesheet,
     createEmbeddedCheckoutSupport,
 } from '../embeddedCheckout';
+import { getCountries } from '../geography/countries.mock';
 
 import Checkout, { type CheckoutProps } from './Checkout';
 
+// The test-framework import above loads Playwright's expect, whose Locator-only matchers
+// (e.g. toBeChecked) shadow jest-dom's in the shared matcher registry; restore jest-dom's.
+expect.extend(jestDomMatchers);
+
+jest.mock('@bigcommerce/checkout/dom-utils', () => ({
+    ...jest.requireActual('@bigcommerce/checkout/dom-utils'),
+    reloadLocation: jest.fn(),
+    replaceLocation: jest.fn(),
+}));
+
 describe('Checkout', () => {
     let checkout: CheckoutPageNodeObject;
-    let CheckoutTest: FunctionComponent<CheckoutProps>;
+    let CheckoutTest: FunctionComponent<
+        CheckoutProps & { capabilities?: typeof defaultCapabilities }
+    >;
     let checkoutService: CheckoutService;
     let extensionService: ExtensionServiceInterface;
     let defaultProps: CheckoutProps & AnalyticsContextProps;
@@ -65,6 +85,9 @@ describe('Checkout', () => {
 
     beforeEach(() => {
         window.scrollTo = jest.fn();
+
+        (replaceLocation as jest.Mock).mockClear();
+        (reloadLocation as jest.Mock).mockClear();
 
         checkoutService = createCheckoutService();
         extensionService = new ExtensionService(checkoutService, createErrorLogger());
@@ -100,13 +123,22 @@ describe('Checkout', () => {
 
         jest.spyOn(defaultProps.errorLogger, 'log').mockImplementation(noop);
 
-        CheckoutTest = (props) => (
+        CheckoutTest = ({ capabilities, ...props }) => (
             <CheckoutProvider checkoutService={checkoutService}>
-                <LocaleProvider checkoutService={checkoutService} languageService={getLanguageService()}>
+                <LocaleProvider
+                    checkoutService={checkoutService}
+                    languageService={getLanguageService()}
+                >
                     <AnalyticsProviderMock>
                         <ExtensionProvider extensionService={extensionService}>
                             <ThemeProvider>
-                                <Checkout {...props} />
+                                {capabilities ? (
+                                    <CapabilitiesContext.Provider value={capabilities}>
+                                        <Checkout {...props} />
+                                    </CapabilitiesContext.Provider>
+                                ) : (
+                                    <Checkout {...props} />
+                                )}
                             </ThemeProvider>
                         </ExtensionProvider>
                     </AnalyticsProviderMock>
@@ -246,7 +278,7 @@ describe('Checkout', () => {
             expect(mockAddEventListener).not.toHaveBeenCalledWith(
                 'prerenderingchange',
                 expect.any(Function),
-                { once: true }
+                { once: true },
             );
         });
 
@@ -261,7 +293,7 @@ describe('Checkout', () => {
             expect(mockAddEventListener).toHaveBeenCalledWith(
                 'prerenderingchange',
                 expect.any(Function),
-                { once: true }
+                { once: true },
             );
         });
 
@@ -329,6 +361,194 @@ describe('Checkout', () => {
             expect(screen.getByText('test@example.com')).toBeInTheDocument();
         });
 
+        describe('reloadPageAfterSignIn capability', () => {
+            const reloadCapabilities = {
+                ...defaultCapabilities,
+                customer: {
+                    ...defaultCapabilities.customer,
+                    reloadPageAfterSignIn: true,
+                },
+            };
+
+            const showLoginForm = async () => {
+                await act(async () => {
+                    await userEvent.click(await screen.findByText('Sign in now'));
+                });
+            };
+
+            const submitLoginForm = async () => {
+                await act(async () => {
+                    await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
+                    await userEvent.type(screen.getByLabelText('Password'), 'Password123');
+                    await userEvent.click(screen.getByRole('button', { name: 'Sign In' }));
+                });
+            };
+
+            const submitCreateAccountForm = async () => {
+                await act(async () => {
+                    await userEvent.click(await screen.findByText('Create an account'));
+                });
+
+                await act(async () => {
+                    await userEvent.type(screen.getByLabelText('First Name'), 'Foo');
+                    await userEvent.type(screen.getByLabelText('Last Name'), 'Bar');
+                    await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
+                    await userEvent.type(screen.getByLabelText('Password'), 'Password123');
+                    await userEvent.type(screen.getByLabelText('Referral Code'), 'ABC');
+                    await userEvent.click(screen.getByRole('button', { name: 'Create Account' }));
+                });
+            };
+
+            const stepCompletedCount = () =>
+                (analyticsTracker.trackStepCompleted as jest.Mock).mock.calls.length;
+
+            beforeEach(() => {
+                jest.spyOn(checkoutService, 'signInCustomer').mockResolvedValue(
+                    checkoutService.getState(),
+                );
+                jest.spyOn(checkoutService, 'createCustomerAccount').mockResolvedValue(
+                    checkoutService.getState(),
+                );
+            });
+
+            it('reloads the page after signing in when the capability is enabled', async () => {
+                render(<CheckoutTest {...defaultProps} capabilities={reloadCapabilities} />);
+
+                await checkout.waitForCustomerStep();
+                await showLoginForm();
+
+                const stepsCompleted = stepCompletedCount();
+
+                await submitLoginForm();
+
+                expect(checkoutService.signInCustomer).toHaveBeenCalled();
+                expect(reloadLocation).toHaveBeenCalled();
+                expect(stepCompletedCount()).toBe(stepsCompleted);
+            });
+
+            it('navigates to the next step after signing in when the capability is disabled', async () => {
+                render(<CheckoutTest {...defaultProps} />);
+
+                await checkout.waitForCustomerStep();
+                await showLoginForm();
+
+                const stepsCompleted = stepCompletedCount();
+
+                await submitLoginForm();
+
+                expect(checkoutService.signInCustomer).toHaveBeenCalled();
+                expect(reloadLocation).not.toHaveBeenCalled();
+                expect(stepCompletedCount()).toBeGreaterThan(stepsCompleted);
+            });
+
+            it('reloads the page after creating an account when the capability is enabled', async () => {
+                render(<CheckoutTest {...defaultProps} capabilities={reloadCapabilities} />);
+
+                await checkout.waitForCustomerStep();
+                await showLoginForm();
+
+                const stepsCompleted = stepCompletedCount();
+
+                await submitCreateAccountForm();
+
+                expect(checkoutService.createCustomerAccount).toHaveBeenCalled();
+                expect(reloadLocation).toHaveBeenCalled();
+                expect(stepCompletedCount()).toBe(stepsCompleted);
+            });
+
+            it('navigates to the next step after creating an account when the capability is disabled', async () => {
+                render(<CheckoutTest {...defaultProps} />);
+
+                await checkout.waitForCustomerStep();
+                await showLoginForm();
+
+                const stepsCompleted = stepCompletedCount();
+
+                await submitCreateAccountForm();
+
+                expect(checkoutService.createCustomerAccount).toHaveBeenCalled();
+                expect(reloadLocation).not.toHaveBeenCalled();
+                expect(stepCompletedCount()).toBeGreaterThan(stepsCompleted);
+            });
+
+            it('does not reload the page when the shopper continues as a guest', async () => {
+                render(<CheckoutTest {...defaultProps} capabilities={reloadCapabilities} />);
+
+                await checkout.waitForCustomerStep();
+
+                const stepsCompleted = stepCompletedCount();
+
+                await act(async () => {
+                    await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
+                    await userEvent.click(screen.getByText('Continue'));
+                });
+
+                expect(reloadLocation).not.toHaveBeenCalled();
+                expect(stepCompletedCount()).toBeGreaterThan(stepsCompleted);
+            });
+
+            afterEach(() => {
+                window.history.replaceState({}, '', '/');
+            });
+
+            const signOut = async () => {
+                jest.spyOn(checkoutService, 'signOutCustomer').mockResolvedValue(
+                    checkoutService.getState(),
+                );
+
+                await act(async () => {
+                    await userEvent.click(await screen.findByTestId('sign-out-link'));
+                });
+            };
+
+            it('reloads the page after signing out when the capability is enabled', async () => {
+                checkoutService = checkout.use(CheckoutPreset.CheckoutWithLoggedInCustomer);
+
+                render(<CheckoutTest {...defaultProps} capabilities={reloadCapabilities} />);
+
+                await checkout.waitForShippingStep();
+                await signOut();
+
+                expect(checkoutService.signOutCustomer).toHaveBeenCalled();
+                expect(reloadLocation).toHaveBeenCalled();
+            });
+
+            it('returns to the customer step after signing out when the capability is disabled', async () => {
+                checkoutService = checkout.use(CheckoutPreset.CheckoutWithLoggedInCustomer);
+
+                render(<CheckoutTest {...defaultProps} />);
+
+                await checkout.waitForShippingStep();
+                await signOut();
+
+                expect(checkoutService.signOutCustomer).toHaveBeenCalled();
+                expect(reloadLocation).not.toHaveBeenCalled();
+                expect(await screen.findByTestId('checkout-customer-guest')).toBeInTheDocument();
+            });
+
+            it('renders the empty cart message instead of reloading when the cart is gone after signing out', async () => {
+                window.history.replaceState({}, '', '/embedded-checkout');
+
+                checkoutService = checkout.use(CheckoutPreset.CheckoutWithLoggedInCustomer);
+
+                render(<CheckoutTest {...defaultProps} capabilities={reloadCapabilities} />);
+
+                await checkout.waitForShippingStep();
+
+                jest.spyOn(checkoutService, 'signOutCustomer').mockRejectedValue({
+                    type: 'checkout_not_available',
+                });
+
+                await act(async () => {
+                    await userEvent.click(await screen.findByTestId('sign-out-link'));
+                });
+
+                expect(reloadLocation).not.toHaveBeenCalled();
+                expect(screen.queryByTestId('checkout-customer-guest')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('sign-out-link')).not.toBeInTheDocument();
+            });
+        });
+
         it('renders checkout button container with ApplePay', async () => {
             (window as any).ApplePaySession = {};
 
@@ -378,6 +598,11 @@ describe('Checkout', () => {
             const error = new Error();
 
             checkoutService = checkout.use(CheckoutPreset.CheckoutWithBillingEmail);
+
+            // Mock countries to ensure form renders
+            jest.spyOn(checkoutService.getState().data, 'getShippingCountries').mockReturnValue(
+                getCountries(),
+            );
 
             jest.spyOn(checkoutService, 'loadShippingAddressFields').mockImplementation(() => {
                 throw error;
@@ -450,12 +675,14 @@ describe('Checkout', () => {
             checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping, {
                 checkout: {
                     ...checkoutWithShippingDiscount,
-                    consignments: [{
-                        ...checkoutWithShippingDiscount.consignments[0],
-                        discounts: [
-                            { ...consignmentAutomaticDiscount, amount: 3 }
-                        ]
-                    }],
+                    comparisonShippingCost: 0,
+                    consignments: [
+                        {
+                            ...checkoutWithShippingDiscount.consignments[0],
+                            comparisonShippingCost: 0,
+                            discounts: [{ ...consignmentAutomaticDiscount, amount: 3 }],
+                        },
+                    ],
                     coupons: [],
                 },
             });
@@ -487,16 +714,19 @@ describe('Checkout', () => {
                         {
                             ...checkoutWithShippingDiscount.consignments[0],
                             id: 'consignment-2',
+                            comparisonShippingCost: 0,
                             discounts: [
                                 { ...consignmentAutomaticDiscount, amount: 3 },
                                 { ...consignmentCouponDiscount, amount: 1 },
-                            ]
-                        }
+                            ],
+                        },
                     ],
-                    coupons: [{
-                        ...checkoutWithShippingDiscount.coupons[0],
-                        discountedAmount: 4,
-                    }]
+                    coupons: [
+                        {
+                            ...checkoutWithShippingDiscount.coupons[0],
+                            discountedAmount: 4,
+                        },
+                    ],
                 },
             });
 
@@ -504,7 +734,8 @@ describe('Checkout', () => {
 
             await checkout.waitForBillingStep();
 
-            const shippingOptionsInShippingSummary = screen.getAllByTestId('static-shipping-option');
+            const shippingOptionsInShippingSummary =
+                screen.getAllByTestId('static-shipping-option');
 
             expect(shippingOptionsInShippingSummary).toHaveLength(2);
             expect(shippingOptionsInShippingSummary[0]).toHaveTextContent('Pickup In Store');
@@ -540,7 +771,7 @@ describe('Checkout', () => {
 
             await checkout.waitForBillingStep();
 
-            await waitFor(()=>{
+            await waitFor(() => {
                 expect(defaultProps.errorLogger.log).toHaveBeenCalledWith(error);
             });
         });
@@ -573,6 +804,267 @@ describe('Checkout', () => {
             await waitFor(() => {
                 expect(defaultProps.errorLogger.log).toHaveBeenCalledWith(error);
             });
+        });
+
+        it('redirects to B2B buyer portal after payment when invoiceRedirect capability is enabled', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling);
+
+            jest.spyOn(checkoutService, 'submitOrder').mockResolvedValue({
+                data: {
+                    getOrder: () => ({ orderId: 123 }) as any,
+                },
+            } as any);
+            jest.spyOn(checkoutService, 'refreshB2BPaymentMethods').mockResolvedValue({} as any);
+            jest.spyOn(checkoutService, 'persistB2BMetadata').mockResolvedValue({} as any);
+
+            const getState = checkoutService.getState.bind(checkoutService);
+
+            jest.spyOn(checkoutService, 'getState').mockImplementation(() => {
+                const state = getState();
+
+                state.data.getB2BContext = () => ({ receiptId: '123' });
+
+                return state;
+            });
+
+            const invoiceRedirectCapabilities = {
+                ...defaultCapabilities,
+                orderConfirmation: {
+                    ...defaultCapabilities.orderConfirmation,
+                    invoiceRedirect: true,
+                    persistB2BMetadata: true,
+                },
+            };
+
+            render(<CheckoutTest {...defaultProps} capabilities={invoiceRedirectCapabilities} />);
+
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getByText(/place order/i));
+
+            await waitFor(() => {
+                expect(replaceLocation).toHaveBeenCalledWith(
+                    'https://store.url/#/invoice?receiptId=123',
+                );
+            });
+        });
+
+        it('persists cannotCreatePersonalAccount to session storage when navigating to order confirmation', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling);
+
+            jest.spyOn(checkoutService, 'submitOrder').mockResolvedValue({
+                data: {
+                    getOrder: () => ({ orderId: 123 }) as any,
+                },
+            } as any);
+
+            const capabilities = {
+                ...defaultCapabilities,
+                orderConfirmation: {
+                    ...defaultCapabilities.orderConfirmation,
+                    cannotCreatePersonalAccount: true,
+                },
+            };
+
+            render(<CheckoutTest {...defaultProps} capabilities={capabilities} />);
+
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getByText(/place order/i));
+
+            await waitFor(() => {
+                expect(
+                    CannotCreatePersonalAccountSessionStorage.getCannotCreatePersonalAccount(),
+                ).toBe(true);
+            });
+            expect(replaceLocation).toHaveBeenCalled();
+            CannotCreatePersonalAccountSessionStorage.removeCannotCreatePersonalAccount();
+        });
+    });
+
+    describe('billing same as shipping checkbox', () => {
+        it('unchecks the checkbox on reload when the saved billing address differs from shipping', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling);
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
+            await checkout.waitForShippingStep();
+
+            expect(
+                screen.getByLabelText('My billing address is the same as my shipping address.'),
+            ).not.toBeChecked();
+        });
+
+        it('keeps the checkbox checked on reload when the saved billing address matches shipping', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling, {
+                checkout: {
+                    ...checkoutWithShippingAndBilling,
+                    billingAddress: {
+                        id: 'billing-address-id',
+                        email: 'test@example.com',
+                        shouldSaveAddress: true,
+                        ...shippingAddress,
+                    },
+                },
+            });
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
+            await checkout.waitForShippingStep();
+
+            expect(
+                screen.getByLabelText('My billing address is the same as my shipping address.'),
+            ).toBeChecked();
+        });
+
+        it('seeds the checkbox from the store setting when the billing address is not set yet', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithBillingEmail, {
+                config: {
+                    ...checkoutSettings,
+                    storeConfig: {
+                        ...checkoutSettings.storeConfig,
+                        checkoutSettings: {
+                            ...checkoutSettings.storeConfig.checkoutSettings,
+                            checkoutBillingSameAsShippingEnabled: false,
+                        },
+                    },
+                },
+            });
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForShippingStep();
+
+            expect(
+                screen.getByLabelText('My billing address is the same as my shipping address.'),
+            ).not.toBeChecked();
+        });
+
+        it('unchecks the checkbox after the billing step saves an address that differs from shipping', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShipping);
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForBillingStep();
+            await checkout.fillAddressForm();
+
+            checkout.updateCheckout(
+                'put',
+                '/checkouts/xxxxxxxxxx-xxxx-xxax-xxxx-xxxxxx/billing-address/billing-address-id*',
+                {
+                    ...checkoutWithShippingAndBilling,
+                },
+            );
+
+            await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
+            await checkout.waitForShippingStep();
+
+            expect(
+                screen.getByLabelText('My billing address is the same as my shipping address.'),
+            ).not.toBeChecked();
+        });
+
+        it('rechecks the checkbox after the billing step saves an address that matches shipping', async () => {
+            checkoutService = checkout.use(CheckoutPreset.CheckoutWithShippingAndBilling);
+
+            render(<CheckoutTest {...defaultProps} />);
+
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[2]);
+            await checkout.waitForBillingStep();
+            await checkout.fillAddressForm();
+
+            checkout.updateCheckout(
+                'put',
+                '/checkouts/xxxxxxxxxx-xxxx-xxax-xxxx-xxxxxx/billing-address/billing-address-id*',
+                {
+                    ...checkoutWithShipping,
+                    billingAddress: {
+                        id: 'billing-address-id',
+                        email: 'test@example.com',
+                        shouldSaveAddress: true,
+                        ...shippingAddress,
+                    },
+                },
+            );
+
+            await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
+            await checkout.waitForPaymentStep();
+
+            await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[1]);
+            await checkout.waitForShippingStep();
+
+            expect(
+                screen.getByLabelText('My billing address is the same as my shipping address.'),
+            ).toBeChecked();
+        });
+    });
+
+    describe('cart deletion on exit', () => {
+        beforeEach(() => {
+            jest.spyOn(checkoutService, 'deleteCheckout').mockResolvedValue({} as any);
+        });
+
+        it('deletes cart on page exit when invoiceRedirect capability is enabled', async () => {
+            render(
+                <CheckoutTest
+                    {...defaultProps}
+                    capabilities={{
+                        ...defaultCapabilities,
+                        orderConfirmation: {
+                            ...defaultCapabilities.orderConfirmation,
+                            invoiceRedirect: true,
+                        },
+                    }}
+                />,
+            );
+
+            await checkout.waitForCustomerStep();
+
+            window.dispatchEvent(new Event('beforeunload'));
+
+            expect(checkoutService.deleteCheckout).toHaveBeenCalled();
+        });
+
+        it('deletes cart on page exit when quote config is present', async () => {
+            render(
+                <CheckoutTest
+                    {...defaultProps}
+                    capabilities={{
+                        ...defaultCapabilities,
+                        userJourney: {
+                            ...defaultCapabilities.userJourney,
+                            quoteConfig: { id: 1 },
+                        },
+                    }}
+                />,
+            );
+
+            await checkout.waitForCustomerStep();
+
+            window.dispatchEvent(new Event('beforeunload'));
+
+            expect(checkoutService.deleteCheckout).toHaveBeenCalled();
+        });
+
+        it('does not delete cart on page exit when neither quote config nor invoiceRedirect is enabled', async () => {
+            render(<CheckoutTest {...defaultProps} capabilities={defaultCapabilities} />);
+
+            await checkout.waitForCustomerStep();
+
+            window.dispatchEvent(new Event('beforeunload'));
+
+            expect(checkoutService.deleteCheckout).not.toHaveBeenCalled();
         });
     });
 });

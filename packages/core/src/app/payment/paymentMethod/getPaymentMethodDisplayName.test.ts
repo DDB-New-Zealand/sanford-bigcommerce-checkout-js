@@ -47,4 +47,28 @@ describe('getPaymentMethodDisplayName()', () => {
             language.translate('payment.credit_debit_card_text'),
         );
     });
+
+    it('returns translated Open Banking display name for Worldpay Access open_banking', () => {
+        const method = {
+            ...getPaymentMethod(),
+            id: 'open_banking',
+            gateway: PaymentMethodId.WorldpayAccess,
+            config: { displayName: 'Access Worldpay' },
+        };
+
+        expect(getPaymentMethodDisplayName(language)(method)).toEqual(
+            language.translate('payment.open_banking_display_name_text'),
+        );
+    });
+
+    it('returns translated "Pay by Invoice" display name for BigCommerce Payments Invoices', () => {
+        const method = {
+            ...getPaymentMethod(),
+            id: PaymentMethodId.BigCommercePaymentsInvoices,
+        };
+
+        expect(getPaymentMethodDisplayName(language)(method)).toEqual(
+            language.translate('payment.invoices_display_name_text'),
+        );
+    });
 });

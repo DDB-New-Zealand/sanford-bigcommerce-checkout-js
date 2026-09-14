@@ -21,8 +21,6 @@ export interface AssetManifest {
 
 export interface LoadFilesOptions {
     publicPath?: string;
-    isIntegrityHashExperimentEnabled?: boolean;
-    isCspNonceExperimentEnabled?: boolean;
 }
 
 export interface LoadFilesResult {
@@ -33,8 +31,7 @@ export interface LoadFilesResult {
 
 export function loadFiles(options?: LoadFilesOptions): Promise<LoadFilesResult> {
     const publicPath = configurePublicPath(options && options.publicPath);
-    const isIntegrityHashExperimentEnabled = options?.isIntegrityHashExperimentEnabled ?? true;
-    const isCspNonceExperimentEnabled = options?.isCspNonceExperimentEnabled ?? true;
+
     const {
         appVersion,
         css = [],
@@ -43,36 +40,49 @@ export function loadFiles(options?: LoadFilesOptions): Promise<LoadFilesResult> 
         integrity = {},
     } = MANIFEST_JSON;
 
-    const scripts = Promise.all(js.filter(path => !path.startsWith('loader')).map((path) =>
-        getScriptLoader().loadScript(joinPaths(publicPath, path), {
-            async: false,
-            attributes: isIntegrityHashExperimentEnabled && integrity[path] ? {
-                crossorigin: 'anonymous',
-                integrity: integrity[path],
-            } : {},
-        })
-    ));
+    const scripts = Promise.all(
+        js
+            .filter((path) => !path.startsWith('loader'))
+            .map((path) =>
+                getScriptLoader().loadScript(joinPaths(publicPath, path), {
+                    async: false,
+                    attributes: integrity[path]
+                        ? {
+                              crossorigin: 'anonymous',
+                              integrity: integrity[path],
+                          }
+                        : {},
+                }),
+            ),
+    );
 
-    const stylesheets = Promise.all(css.map((path) =>
-        getStylesheetLoader().loadStylesheet(joinPaths(publicPath, path), {
-            prepend: true,
-            attributes: isIntegrityHashExperimentEnabled && integrity[path] ? {
-                crossorigin: 'anonymous',
-                integrity: integrity[path],
-            } : {},
-        })
-    ));
+    const stylesheets = Promise.all(
+        css.map((path) =>
+            getStylesheetLoader().loadStylesheet(joinPaths(publicPath, path), {
+                prepend: true,
+                attributes: integrity[path]
+                    ? {
+                          crossorigin: 'anonymous',
+                          integrity: integrity[path],
+                      }
+                    : {},
+            }),
+        ),
+    );
+
+    const preloadOptions = {
+        prefetch: true,
+        crossOrigin: 'anonymous' as const,
+    };
 
     getScriptLoader().preloadScripts(
-        jsDynamicChunks
-            .map((path) => joinPaths(publicPath, path)),
-        { prefetch: true },
+        jsDynamicChunks.map((path) => joinPaths(publicPath, path)),
+        preloadOptions,
     );
 
     getStylesheetLoader().preloadStylesheets(
-        cssDynamicChunks
-            .map((path) => joinPaths(publicPath, path)),
-        { prefetch: true },
+        cssDynamicChunks.map((path) => joinPaths(publicPath, path)),
+        preloadOptions,
     );
 
     const languageConfig = isLanguageWindow(window)
@@ -99,7 +109,6 @@ export function loadFiles(options?: LoadFilesOptions): Promise<LoadFilesResult> 
             initializeLanguageService({
                 ...languageConfig,
                 defaultTranslations,
-                isCspNonceExperimentEnabled,
             });
 
             return {

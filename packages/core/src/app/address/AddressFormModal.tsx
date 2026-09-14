@@ -1,14 +1,23 @@
 import { type Address, type FormField } from '@bigcommerce/checkout-sdk';
+import classNames from 'classnames';
 import { type FormikProps, withFormik } from 'formik';
 import React, { type FunctionComponent } from 'react';
 import { lazy } from 'yup';
 
-import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
-import { LoadingOverlay } from '@bigcommerce/checkout/ui';
-
-import { Button, ButtonVariant } from '../ui/button';
-import { Form } from '../ui/form';
-import { Modal, ModalHeader } from '../ui/modal';
+import { useThemeContext } from '@bigcommerce/checkout/contexts';
+import {
+    TranslatedString,
+    withLanguage,
+    type WithLanguageProps,
+} from '@bigcommerce/checkout/locale';
+import {
+    Button,
+    ButtonVariant,
+    Form,
+    LoadingOverlay,
+    Modal,
+    ModalHeader,
+} from '@bigcommerce/checkout/ui';
 
 import AddressForm from './AddressForm';
 import AddressType from './AddressType';
@@ -32,26 +41,18 @@ export interface AddressFormProps {
 
 const SaveAddress: FunctionComponent<
     AddressFormProps & WithLanguageProps & FormikProps<AddressFormValues>
-> = ({
-    getFields,
-    values,
-    setFieldValue,
-    isLoading,
-    onRequestClose,
-}) => (
+> = ({ getFields, values, setFieldValue, isLoading, onRequestClose, shouldShowSaveAddress }) => (
     <Form autoComplete="on">
         <LoadingOverlay isLoading={isLoading}>
             <AddressForm
                 countryCode={values.countryCode}
                 formFields={getFields(values.countryCode)}
                 setFieldValue={setFieldValue}
-                shouldShowSaveAddress={false}
+                shouldShowSaveAddress={shouldShowSaveAddress}
                 type={AddressType.Shipping}
             />
             <div className="form-actions">
-                <Button
-                    onClick={onRequestClose}
-                    variant={ButtonVariant.Secondary}>
+                <Button onClick={onRequestClose} variant={ButtonVariant.Secondary}>
                     <TranslatedString id="common.cancel_action" />
                 </Button>
 
@@ -73,12 +74,11 @@ const SaveAddressForm = withLanguage(
         handleSubmit: (values, { props: { onSaveAddress } }) => {
             onSaveAddress(values);
         },
-        mapPropsToValues: ({ getFields, selectedAddress }) => {
-            return mapAddressToFormValues(
+        mapPropsToValues: ({ getFields, selectedAddress }) =>
+            mapAddressToFormValues(
                 getFields(selectedAddress && selectedAddress.countryCode),
                 selectedAddress,
-            )
-        },
+            ),
         validationSchema: ({ language, getFields }: AddressFormProps & WithLanguageProps) =>
             lazy<Partial<AddressFormValues>>((values) =>
                 getAddressFormFieldsValidationSchema({
@@ -94,21 +94,33 @@ const AddressFormModal: FunctionComponent<AddressFormModalProps> = ({
     onAfterOpen,
     onRequestClose,
     ...addressFormProps
-}) => (
-    <Modal
-        additionalModalClassName="modal--medium"
-        header={
-            <ModalHeader>
-                <TranslatedString id="address.add_address_heading" />
-            </ModalHeader>
-        }
-        isOpen={isOpen}
-        onAfterOpen={onAfterOpen}
-        onRequestClose={onRequestClose}
-        shouldShowCloseButton={true}
-    >
-        <SaveAddressForm {...addressFormProps} onRequestClose={onRequestClose} />
-    </Modal>
-);
+}) => {
+    const { enhancedThemeV1 } = useThemeContext();
+
+    return (
+        <Modal
+            additionalModalClassName={classNames('modal--medium', 'modal--address', {
+                enhancedThemeV1,
+            })}
+            header={
+                <ModalHeader>
+                    <TranslatedString
+                        id={
+                            enhancedThemeV1
+                                ? 'address.add_address_heading_v2'
+                                : 'address.add_address_heading'
+                        }
+                    />
+                </ModalHeader>
+            }
+            isOpen={isOpen}
+            onAfterOpen={onAfterOpen}
+            onRequestClose={onRequestClose}
+            shouldShowCloseButton={true}
+        >
+            <SaveAddressForm {...addressFormProps} onRequestClose={onRequestClose} />
+        </Modal>
+    );
+};
 
 export default AddressFormModal;

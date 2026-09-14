@@ -1,18 +1,70 @@
-import { type LineItemMap } from '@bigcommerce/checkout-sdk';
+import { type DigitalItem, type LineItemMap, type PhysicalItem } from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
-import React, { type ReactElement, useCallback, useState } from 'react';
+import React, {
+    type FunctionComponent,
+    type ReactElement,
+    type ReactNode,
+    useCallback,
+    useRef,
+    useState,
+} from 'react';
+import { TransitionGroup } from 'react-transition-group';
 
+import { useCheckout } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
+import {
+    CollapseCSSTransition,
+    IconChevronDown,
+    IconChevronUp,
+    isSmallScreen,
+    Switch,
+} from '@bigcommerce/checkout/ui';
 
-import { IconChevronDown, IconChevronUp } from '../ui/icon';
-import { isSmallScreen } from '../ui/responsive';
-
+import getBackorderCount from './getBackorderCount';
 import getItemsCount from './getItemsCount';
 import mapFromCustom from './mapFromCustom';
 import mapFromDigital from './mapFromDigital';
 import mapFromGiftCertificate from './mapFromGiftCertificate';
 import mapFromPhysical from './mapFromPhysical';
 import OrderSummaryItem from './OrderSummaryItem';
+import { getNonBundledItems } from './removeBundledItems';
+
+// Module-scoped to survive the responsive remount. Safe as MobileView mounts only one instance at a time.
+let backorderDetailsExpanded = false;
+
+const getBackorderDetailsExpanded = (): boolean => backorderDetailsExpanded;
+
+export const setBackorderDetailsExpanded = (value: boolean): void => {
+    backorderDetailsExpanded = value;
+};
+
+interface AnimatedProductItemProps {
+    children: ReactNode;
+    in?: boolean;
+    onExited?: () => void;
+}
+
+const AnimatedProductItem: FunctionComponent<AnimatedProductItemProps> = ({
+    children,
+    in: inProp,
+    onExited,
+}) => {
+    const nodeRef = useRef<HTMLLIElement>(null);
+
+    return (
+        <CollapseCSSTransition
+            classNames="product-item"
+            in={inProp}
+            isSlideAnimation
+            nodeRef={nodeRef}
+            onExited={onExited}
+        >
+            <li className="productList-item is-visible" ref={nodeRef}>
+                {children}
+            </li>
+        </CollapseCSSTransition>
+    );
+};
 
 const COLLAPSED_ITEMS_LIMIT = 4;
 const COLLAPSED_ITEMS_LIMIT_SMALL_SCREEN = 3;
@@ -20,42 +72,99 @@ const COLLAPSED_ITEMS_LIMIT_SMALL_SCREEN = 3;
 export interface OrderSummaryItemsProps {
     displayLineItemsCount: boolean;
     items: LineItemMap;
-    themeV2?: boolean;
 }
 
-const ItemCount = ({ items, themeV2 }: { items: LineItemMap; themeV2: boolean }): ReactElement => (
-    <h3
-        className={classNames('cart-section-heading optimizedCheckout-contentPrimary', { 'body-medium': themeV2 })}
-        data-test="cart-count-total"
+const SummaryHeading = ({
+    displayLineItemsCount,
+    nonBundledItems,
+    showBackorderDetails,
+    showBackorderSwitch,
+    toggleBackorderDetails,
+}: {
+    displayLineItemsCount: boolean;
+    nonBundledItems: LineItemMap;
+    showBackorderDetails: boolean;
+    showBackorderSwitch: boolean;
+    toggleBackorderDetails(): void;
+}): ReactElement => (
+    <div
+        className={classNames('cart-section-heading-container', {
+            'cart-section-heading-container--switch-only': !displayLineItemsCount,
+        })}
     >
-        <TranslatedString data={{ count: getItemsCount(items) }} id="cart.item_count_text" />
-    </h3>
+        {displayLineItemsCount && (
+            <h3
+                className="cart-section-heading optimizedCheckout-contentPrimary body-medium"
+                data-test="cart-count-total"
+            >
+                <TranslatedString
+                    data={{ count: getItemsCount(nonBundledItems) }}
+                    id="cart.item_count_text"
+                />
+            </h3>
+        )}
+        {showBackorderSwitch && (
+            <Switch
+                checked={showBackorderDetails}
+                label={<TranslatedString id="cart.backorder_details" />}
+                onChange={toggleBackorderDetails}
+                testId="cart-backorder-link"
+            />
+        )}
+    </div>
 );
 
-const ProductList = ({ items, isExpanded, collapsedLimit }: { items: LineItemMap; isExpanded: boolean; collapsedLimit: number }): ReactElement => {
+const ProductList = ({
+    items,
+    isExpanded,
+    collapsedLimit,
+    showBackorderDetails,
+    bundleItemsMap,
+}: {
+    items: LineItemMap;
+    isExpanded: boolean;
+    collapsedLimit: number;
+    showBackorderDetails: boolean;
+    bundleItemsMap?: Map<string | number, Array<PhysicalItem | DigitalItem>>;
+}): ReactElement => {
     const summaryItems = [
-        ...items.physicalItems.slice().sort((item) => item.variantId).map(mapFromPhysical),
+        ...items.physicalItems
+            .slice()
+            .sort((a, b) => a.variantId - b.variantId)
+            .map((item) => mapFromPhysical(item, bundleItemsMap)),
         ...items.giftCertificates.slice().map(mapFromGiftCertificate),
-        ...items.digitalItems.slice().sort((item) => item.variantId).map(mapFromDigital),
+        ...items.digitalItems
+            .slice()
+            .sort((a, b) => a.variantId - b.variantId)
+            .map((item) => mapFromDigital(item, bundleItemsMap)),
         ...(items.customItems || []).map(mapFromCustom),
     ].slice(0, isExpanded ? undefined : collapsedLimit);
 
     return (
-        <ul aria-live="polite" className="productList">
-            {summaryItems.map(summaryItemProps => (
-                <li className="productList-item is-visible" key={summaryItemProps.id}>
-                    <OrderSummaryItem {...summaryItemProps} />
-                </li>
+        <TransitionGroup aria-live="polite" className="productList" component="ul">
+            {summaryItems.map((summaryItemProps) => (
+                <AnimatedProductItem key={summaryItemProps.id}>
+                    <OrderSummaryItem
+                        orderItem={summaryItemProps}
+                        shouldExpandBackorderDetails={showBackorderDetails}
+                    />
+                </AnimatedProductItem>
             ))}
-        </ul>
+        </TransitionGroup>
     );
 };
 
-const CartActions = ({ isExpanded, onToggle, themeV2 }: { isExpanded: boolean; onToggle(): void; themeV2: boolean }): ReactElement => (
+const CartActions = ({
+    isExpanded,
+    onSwitch,
+}: {
+    isExpanded: boolean;
+    onSwitch(): void;
+}): ReactElement => (
     <div className="cart-actions">
         <button
-            className={classNames('button button--tertiary button--tiny optimizedCheckout-buttonSecondary', { 'sub-text-medium': themeV2 })}
-            onClick={onToggle}
+            className="button button--tertiary button--tiny optimizedCheckout-buttonSecondary optimizedCheckout-contentSecondary sub-text-medium"
+            onClick={onSwitch}
             type="button"
         >
             {isExpanded ? (
@@ -76,29 +185,71 @@ const CartActions = ({ isExpanded, onToggle, themeV2 }: { isExpanded: boolean; o
 const OrderSummaryItems = ({
     displayLineItemsCount = true,
     items,
-    themeV2 = false,
 }: OrderSummaryItemsProps): ReactElement => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showBackorderDetails, setShowBackorderDetails] = useState(getBackorderDetailsExpanded);
+    const {
+        selectedState: { config, order },
+    } = useCheckout(({ data }) => ({
+        config: data.getConfig(),
+        order: data.getOrder(),
+    }));
 
-    const collapsedLimit = isSmallScreen() ? COLLAPSED_ITEMS_LIMIT_SMALL_SCREEN : COLLAPSED_ITEMS_LIMIT;
+    const toggleBackorderDetails = useCallback(() => {
+        setShowBackorderDetails((prev) => {
+            const next = !prev;
+
+            setBackorderDetailsExpanded(next);
+
+            return next;
+        });
+    }, []);
+
+    const backorderCount = getBackorderCount(items);
+    const shouldDisplayBackorderDetails =
+        !!config?.inventorySettings?.shouldDisplayBackorderMessagesOnStorefront &&
+        (config?.inventorySettings?.showQuantityOnBackorder ||
+            config?.inventorySettings?.showBackorderMessage);
+    const showBackorderSwitch = shouldDisplayBackorderDetails && backorderCount > 0;
+
+    const expandBackorderDetails = showBackorderSwitch && showBackorderDetails;
+
+    const { nonBundledItems, bundleItemsMap } = getNonBundledItems(items, order?.bundledItems);
+
+    const collapsedLimit = isSmallScreen()
+        ? COLLAPSED_ITEMS_LIMIT_SMALL_SCREEN
+        : COLLAPSED_ITEMS_LIMIT;
     const getLineItemCount = useCallback(
         () =>
-            ((items.customItems || []).length +
-                items.physicalItems.length +
-                items.digitalItems.length +
-                items.giftCertificates.length),
-        [items]
+            (nonBundledItems.customItems || []).length +
+            nonBundledItems.physicalItems.length +
+            nonBundledItems.digitalItems.length +
+            nonBundledItems.giftCertificates.length,
+        [nonBundledItems],
     );
     const shouldShowActions = getLineItemCount() > collapsedLimit;
-    const handleToggle = () => setIsExpanded(!isExpanded);
+    const handleSwitch = () => setIsExpanded(!isExpanded);
 
     return (
         <>
-            {displayLineItemsCount && <ItemCount items={items} themeV2={themeV2} />}
+            {(displayLineItemsCount || showBackorderSwitch) && (
+                <SummaryHeading
+                    displayLineItemsCount={displayLineItemsCount}
+                    nonBundledItems={nonBundledItems}
+                    showBackorderDetails={showBackorderDetails}
+                    showBackorderSwitch={showBackorderSwitch}
+                    toggleBackorderDetails={toggleBackorderDetails}
+                />
+            )}
+            <ProductList
+                bundleItemsMap={bundleItemsMap}
+                collapsedLimit={collapsedLimit}
+                isExpanded={isExpanded}
+                items={nonBundledItems}
+                showBackorderDetails={expandBackorderDetails}
+            />
 
-            <ProductList collapsedLimit={collapsedLimit} isExpanded={isExpanded} items={items} />
-
-            {shouldShowActions && <CartActions isExpanded={isExpanded} onToggle={handleToggle} themeV2={themeV2} />}
+            {shouldShowActions && <CartActions isExpanded={isExpanded} onSwitch={handleSwitch} />}
         </>
     );
 };

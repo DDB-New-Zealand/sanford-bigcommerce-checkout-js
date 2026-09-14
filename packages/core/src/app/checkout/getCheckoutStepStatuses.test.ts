@@ -88,13 +88,13 @@ describe('getCheckoutStepStatuses()', () => {
                 jest.spyOn(service.getState().data, 'getConfig').mockReturnValue({
                     ...getStoreConfig(),
                     checkoutSettings: {
-                        ...getStoreConfig().checkoutSettings, providerWithCustomCheckout: PaymentMethodId.StripeUPE,
+                        ...getStoreConfig().checkoutSettings,
+                        providerWithCustomCheckout: PaymentMethodId.StripeUPE,
                     },
                 });
-                jest.spyOn(
-                    service.getState().data,
-                    'getPaymentProviderCustomer',
-                ).mockReturnValue({ authenticationState: true });
+                jest.spyOn(service.getState().data, 'getPaymentProviderCustomer').mockReturnValue({
+                    authenticationState: true,
+                });
 
                 const steps = getCheckoutStepStatuses(state);
 
@@ -108,7 +108,8 @@ describe('getCheckoutStepStatuses()', () => {
                 jest.spyOn(service.getState().data, 'getConfig').mockReturnValue({
                     ...getStoreConfig(),
                     checkoutSettings: {
-                        ...getStoreConfig().checkoutSettings, providerWithCustomCheckout: PaymentMethodId.StripeUPE,
+                        ...getStoreConfig().checkoutSettings,
+                        providerWithCustomCheckout: PaymentMethodId.StripeUPE,
                     },
                 });
                 jest.spyOn(service.getState().data, 'getCart').mockReturnValue(getCart());
@@ -125,7 +126,8 @@ describe('getCheckoutStepStatuses()', () => {
                 jest.spyOn(service.getState().data, 'getConfig').mockReturnValue({
                     ...getStoreConfig(),
                     checkoutSettings: {
-                        ...getStoreConfig().checkoutSettings, providerWithCustomCheckout: PaymentMethodId.StripeUPE,
+                        ...getStoreConfig().checkoutSettings,
+                        providerWithCustomCheckout: PaymentMethodId.StripeUPE,
                     },
                 });
 
@@ -141,7 +143,8 @@ describe('getCheckoutStepStatuses()', () => {
             jest.spyOn(service.getState().data, 'getConfig').mockReturnValue({
                 ...getStoreConfig(),
                 checkoutSettings: {
-                    ...getStoreConfig().checkoutSettings, providerWithCustomCheckout: PaymentMethodId.StripeUPE,
+                    ...getStoreConfig().checkoutSettings,
+                    providerWithCustomCheckout: PaymentMethodId.StripeUPE,
                 },
             });
 
@@ -279,41 +282,16 @@ describe('getCheckoutStepStatuses()', () => {
 
         describe('googlepay', () => {
             it('should be editable if experiment is on', () => {
-                jest.spyOn(state.data, 'getCheckout').mockReturnValue(getCheckoutWithPayments('googlepaystripe'));
+                jest.spyOn(state.data, 'getCheckout').mockReturnValue(
+                    getCheckoutWithPayments('googlepaystripe'),
+                );
                 jest.spyOn(state.data, 'getBillingAddress').mockReturnValue(getBillingAddress());
-                jest.spyOn(state.data, 'getConfig').mockReturnValue({
-                    ...getStoreConfig(),
-                    checkoutSettings: {
-                        ...getStoreConfig().checkoutSettings,
-                        features: {
-                            'STRIPE-546.allow_billing_address_editing_for_all_Google_Pay_providers': true,
-                        }
-                    }
-                });
 
                 const steps = getCheckoutStepStatuses(state);
 
                 expect(find(steps, { type: CheckoutStepType.Billing })!.isEditable).toBe(true);
             });
-
-            it('should NOT be editable if experiment is off', () => {
-                jest.spyOn(state.data, 'getCheckout').mockReturnValue(getCheckoutWithPayments('googlepaystripe'));
-                jest.spyOn(state.data, 'getBillingAddress').mockReturnValue(getBillingAddress());
-                jest.spyOn(state.data, 'getConfig').mockReturnValue({
-                    ...getStoreConfig(),
-                    checkoutSettings: {
-                        ...getStoreConfig().checkoutSettings,
-                        features: {
-                            'STRIPE-546.allow_billing_address_editing_for_all_Google_Pay_providers': false,
-                        }
-                    }
-                });
-
-                const steps = getCheckoutStepStatuses(state);
-
-                expect(find(steps, { type: CheckoutStepType.Billing })!.isEditable).toBe(false);
-            });
-        })
+        });
     });
 
     describe('shipping step', () => {
@@ -500,6 +478,49 @@ describe('getCheckoutStepStatuses()', () => {
             CheckoutStepType.Billing,
             CheckoutStepType.Payment,
         ]);
+    });
+
+    describe('enhancedThemeV1 (billing captured on the payment step)', () => {
+        const getEnhancedThemeV1Config = () => ({
+            ...getStoreConfig(),
+            checkoutSettings: {
+                ...getStoreConfig().checkoutSettings,
+                features: {
+                    ...getStoreConfig().checkoutSettings.features,
+                    'CHECKOUT-7962.update_font_style_on_checkout_page': true,
+                },
+                checkoutUserExperienceSettings: {
+                    ...getStoreConfig().checkoutSettings.checkoutUserExperienceSettings,
+                    enhancedCheckoutThemeV1: true,
+                },
+            },
+        });
+
+        beforeEach(() => {
+            jest.spyOn(state.data, 'getConfig').mockReturnValue(getEnhancedThemeV1Config());
+        });
+
+        it('omits the standalone billing step', () => {
+            expect(
+                find(getCheckoutStepStatuses(state), { type: CheckoutStepType.Billing }),
+            ).toBeUndefined();
+        });
+
+        it('returns the remaining steps in order without billing', () => {
+            expect(getCheckoutStepStatuses(state).map((step) => step.type)).toEqual([
+                CheckoutStepType.Customer,
+                CheckoutStepType.Shipping,
+                CheckoutStepType.Payment,
+            ]);
+        });
+
+        it('still omits the billing step when a wallet payment (e.g. Amazon Pay) is present', () => {
+            jest.spyOn(state.data, 'getCheckout').mockReturnValue(getCheckoutWithPayments());
+
+            expect(
+                find(getCheckoutStepStatuses(state), { type: CheckoutStepType.Billing }),
+            ).toBeUndefined();
+        });
     });
 
     it('marks latter steps as non-editable if earlier steps are incomplete', () => {

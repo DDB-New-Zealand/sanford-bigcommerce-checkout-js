@@ -9,6 +9,7 @@
             "consignment_address_updated_text": "El artículo se asignó correctamente a la nueva dirección.",
             "city_label": "Ciudad",
             "city_required_error": "La ciudad es obligatoria",
+            "address_label_label": "Etiqueta de dirección",
             "company_name_label": "Nombre de la empresa",
             "company_name_required_error": "Empresa es un campo obligatorio",
             "confirm_address_action": "Continuar con la dirección actual",
@@ -18,10 +19,14 @@
             "custom_required_error": "{label} es un campo obligatorio",
             "custom_min_error": "{label} no debe tener menos de {min} caracteres",
             "custom_max_error": "{label} no debe tener más de {max} caracteres",
+            "custom_min_number_error": "{label} debe ser mayor o igual a {min}",
+            "custom_max_number_error": "{label} debe ser menor o igual a {max}",
+            "custom_range_error": "{label} debe de estar entre {min} y {max}",
             "invalid_characters_error": "{label} contiene caracteres no válidos",
             "custom_valid_error": "{label} no es válido",
             "edit_address_action": "Editar dirección",
             "enter_address_action": "Ingresa una nueva dirección",
+            "select_address_action": "Selecciona una dirección",
             "enter_or_select_address_action": "Ingresa o selecciona otra dirección",
             "add_address_heading": "Agregar dirección",
             "save_address_action": "Guardar dirección",
@@ -30,10 +35,13 @@
             "last_name_label": "Apellido",
             "last_name_required_error": "El campo Apellido es obligatorio.",
             "phone_number_label": "Número telefónico",
+            "phone_number_invalid_error": "El número de teléfono introducido no es válido",
             "phone_number_required_error": "El campo Número de teléfono es obligatorio.",
             "postal_code_label": "Código postal",
             "postal_code_required_error": "El campo Código postal es obligatorio.",
             "save_in_addressbook": "Guardar esta dirección en mi libreta de direcciones.",
+            "save_to_company_addressbook": "Guardar en la libreta de direcciones de la empresa.",
+            "search_addresses": "Direcciones de búsqueda",
             "select_country_action": "Seleccionar un país",
             "select_state_action": "Seleccionar un estado",
             "state_label": "Estado/Provincia",
@@ -45,9 +53,11 @@
         "billing": {
             "billing_address_heading": "Dirección de facturación",
             "billing_heading": "Facturación",
+            "no_billing_addresses_warning": "Lo sentimos, no tienes una dirección de facturación para elegir, por favor ve a tu agenda para crear una dirección o contacta con el administrador de tu sitio.",
             "save_billing_address_error": "Ocurrió un error al guardar la dirección de facturación en tu cotización. Vuelve a intentarlo.",
             "billing_address_amazonpay": "Administrado por Amazon Pay",
-            "use_shipping_address_label": "Mi dirección de facturación es la misma que mi dirección de envío."
+            "use_shipping_address_label": "Mi dirección de facturación es la misma que mi dirección de envío.",
+            "same_as_shipping_label": "Igual que la dirección de envío"
         },
         "cart": {
             "billed_amount_text": "*Se te cobrará y se te facturará {total} ({code}) por este pedido.",
@@ -57,6 +67,8 @@
             "discount_text": "Descuento",
             "downloads_action": "Ir a Descargas",
             "edit_cart_action": "Editar carrito",
+            "back_to_invoices": "Volver a las facturas",
+            "go_to_cart_action": "Carrito",
             "edit_multi_shipping_cart_message": "Los artículos nuevos se enviarán por defecto al destino de envío n.º 1. Reasígnalos si quieres que se envíen a otros destinos.",
             "estimated_total_text": "Total estimado",
             "free_text": "Gratuito",
@@ -65,15 +77,25 @@
             "item": "Artículo",
             "items": "Artículos",
             "item_count_text": "{count, plural, one{1 Item} other{# Items} }",
+            "backorder_count_text": "{count} estará en pedido pendiente",
+            "backorder_quantities_changed_heading": "Las cantidades de pedidos pendientes cambiaron para los siguientes artículos:",
+            "cart_stock_modal_destination": "Destino #{consignmentNumber}",
+            "ready_to_ship_count_text": "{count} listo para enviar",
+            "bundled_item_label": "Paquete:",
+            "backorder_details": "Detalles de pedidos pendientes",
             "print_action": "Imprimir",
+            "qty_label": "Cantidad: {quantity}",
             "remaining_text": "Restante",
             "remove_action": "Quitar",
             "return_to_checkout": "REGRESAR AL ÁREA DE PAGO",
             "see_all_action": "Ver todo",
             "see_less_action": "Ver menos",
+            "show_order_summary_action": "Resumen del orden del espectáculo",
+            "hide_order_summary_action": "Resumen del orden de ocultar",
             "shipping_text": "Envío",
             "gift_wrapping_text": "Envoltura de regalo",
             "show_details_action": "Mostrar detalles",
+            "hide_details_action": "Ocultar detalles",
             "store_credit_text": "Crédito de la tienda",
             "subtotal_text": "Subtotal",
             "taxes_text": "Impuestos",
@@ -88,6 +110,7 @@
             "cancel_action": "Cancelar",
             "close_action": "Cerrar",
             "continue_action": "Continúa",
+            "continue_to_payment_action": "Continuar al pago",
             "change_action": "Cambiar",
             "proceed_action": "Continuar",
             "edit_action": "Editar",
@@ -101,6 +124,7 @@
             "error_code": "Código de error:",
             "request_id": "ID de solicitud:",
             "optional_text": "(Opcional)",
+            "please_select_text": "Selecciona",
             "unavailable_error": "El proceso de pago no está disponible temporalmente. Vuelve a intentarlo más tarde.",
             "unavailable_heading": "El proceso de pago no está disponible temporalmente",
             "unstable_network_error": "Al parecer, el servidor está tardando demasiado en responder; esto puede deberse a una mala conexión o un error con nuestros servidores. Vuelve a intentarlo en un momento.",
@@ -113,8 +137,11 @@
         "customer": {
             "continue_as_guest_action": "Continuar como invitado",
             "continue_as_stripe_customer_action": "Continuar con Link",
+            "continue_checkout_as_guest_action": "Continuar el proceso de pago como invitado",
             "create_account_action": "Crear cuenta",
+            "create_account_instead_action": "Crear una cuenta en su lugar",
             "continue": "Continúa",
+            "continue_to_shipping_action": "Continuar al envío",
             "set_password_action": "Guardar contraseña",
             "required_error": "{label} es un campo obligatorio",
             "min_error": "{label} debe ser mayor que {min}",
@@ -158,6 +185,7 @@
             "reset_password_before_login_error": "El inicio de sesión no está disponible en este momento. Recibirás un correo electrónico en los próximos 5 minutos con instrucciones para restablecer tu contraseña. Si no recibes este correo electrónico, verifica tu carpeta de correo no deseado o contáctanos para obtener más ayuda.",
             "returning_customer_text": "Cliente habitual",
             "sign_in_action": "Iniciar sesión",
+            "sign_in_action_v2": "Iniciar sesión",
             "sign_in_error": "El correo electrónico o la contraseña que ingresaste no son válidos.",
             "sign_in_throttled_error": "Debido a que hubo muchos intentos de inicio de sesión, espera 10 segundos antes de intentar iniciar la sesión de nuevo.",
             "sign_out_action": "Cerrar sesión",
@@ -193,7 +221,6 @@
             "amazon_continue_action": "Continuar con Amazon",
             "amazonpay_continue_action": "Continuar con Amazon Pay",
             "amazon_name_text": "Amazon Pay",
-            "barclaycard_continue_action": "Continúa",
             "bluesnap_v2_continue_action": "Continúa",
             "bluesnap_direct_account_type_select": {
                 "label": "Selecciona un tipo de cuenta",
@@ -263,6 +290,7 @@
             "clearpay_name_text": "Clearpay",
             "credit_card_text": "Tarjeta de crédito",
             "credit_card_customer_code_label": "Código de cliente",
+            "credit_card_cvv_help_action": "¿Qué es un CVV?",
             "credit_card_cvv_help_text": "Para VISA y Mastercard, el CVV es un código de tres dígitos impreso en el reverso. Para American Express, es el código de cuatro dígitos impreso en el anverso. El CVV es una medida de seguridad para garantizar que tienes la tarjeta en tu poder.",
             "credit_card_cvv_invalid_error": "El CVV debe ser válido",
             "credit_card_cvv_label": "CVV",
@@ -281,6 +309,9 @@
             "credit_card_number_required_error": "El número de tarjeta de crédito es obligatorio",
             "credit_card_number_mismatch_error": "El número de tarjeta que se ingresó no coincide con la tarjeta guardada en tu cuenta",
             "credit_debit_card_text": "Tarjeta de débito/crédito",
+            "open_banking_display_name_text": "Banca Abierta",
+            "invoices_display_name_text": "Pagar por factura",
+            "invoice_payment_comment_label": "Comentario sobre el pago",
             "payment_methods_text": "Métodos de pago",
             "redeemable_payments_text": "Pagos canjeables",
             "instrument_storage_options_text": "Opciones de almacenamiento de pagos",
@@ -289,7 +320,6 @@
             "humm_not_processable_error": "Humm no puede procesar el pago de este pedido; selecciona otro método de pago.",
             "klarna_continue_action": "Continuar con Klarna",
             "klarna_name_text": "Klarna",
-            "masterpass_name_text": "Masterpass",
             "mollie_unsupported_method_error": "No se puede usar este método de pago para la compra de productos digitales. Comunícate con atención al cliente o vuelve a intentarlo.",
             "opy_continue_action": "Continuar con {methodName}",
             "opy_widget_slogan": "Compra ahora. Paga de manera más inteligente.",
@@ -307,6 +337,9 @@
             "payment_method_invalid_error": "Hay un problema al procesar tu pago. Ponte en contacto con nosotros para obtener ayuda o elige otra forma de pago.",
             "payment_method_unavailable_error": "Este proveedor de pagos no está disponible temporalmente. Vuelve a intentarlo más tarde.",
             "payment_not_required_text": "No se requiere el pago para este pedido.",
+            "payment_methods_unavailable_error": "Ahora mismo no podemos cargar los métodos de pago. Por favor, inténtalo de nuevo más tarde o contacta con la tienda para recibir ayuda.",
+            "payment_methods_reloaded_method_unavailable_text": "Opciones de pago recargadas para {countryName} como país de facturación. {methodName} no está disponible en este país; elige otro método de pago.",
+            "payment_methods_updated_for_country_text": "Opciones de pago actualizadas para {countryName} como país de facturación.",
             "paypal_complete_action": "Completar pedido",
             "paypal_continue_action": "Continuar con PayPal",
             "paypal_pay_later_complete_action": "Completar pedido",
@@ -318,6 +351,7 @@
             "paypal_name_text": "PayPal",
             "paypal_credit_name_text": "Pagar después",
             "place_order_action": "Realizar pedido",
+            "place_order_action_v2": "Realizar pedido",
             "place_order_error": "Ocurrió un error al colocar tu pedido. Ponte en contacto con nosotros.",
             "place_order_error_heading": "No se pudo realizar el pedido",
             "postal_code_label": "Código postal",
@@ -342,6 +376,7 @@
             "instrument_manage_delete_server_error": "Ocurrió un error al intentar eliminar ese método de pago almacenado. Vuelve a intentarlo.",
             "instrument_manage_delete_auth_error": "Ocurrió un problema al autorizar tu solicitud. Vuelve a intentar iniciar sesión.",
             "instrument_manage_delete_client_error": "Ocurrió un error al intentar eliminar el método de pago guardado: el método de pago ya no existe o no se puede eliminar.",
+            "auto_vaulting_disclaimer": "Al proporcionar la información de tu tarjeta y realizar este pedido, aceptas que tu tarjeta pueda ser cobrada por pagos futuros conforme a los términos del comerciante.",
             "instrument_save_payment_method_label": "Guardar esta tarjeta para futuras transacciones",
             "instrument_save_as_default_payment_method_label": "Utilizar esta tarjeta como método de pago predeterminado para transacciones futuras",
             "account_instrument_add_action": "Usar una cuenta diferente",
@@ -380,10 +415,13 @@
             "phone_number_label": "Número telefónico",
             "errors": {
                 "account_number_required_error": "El número de cuenta es obligatorio",
+                "field_required_error": "{label} es un campo obligatorio",
                 "routing_number_required_error": "El número de ruteo es obligatorio",
                 "phone_number_required_error": "El campo Número de teléfono es obligatorio.",
                 "business_name_required_error": "La razón social es obligatoria",
                 "only_numbers_error": "{label} debe contener únicamente números",
+                "disabled_PO_number_credit": "Esta compra supera tu crédito disponible, por favor selecciona un método de pago alternativo",
+                "disabled_PO_number_currency_mismatch": "Por favor, emplea {currency} para aprovechar la {name}",
                 "additional_action_required": "Continúa con acciones adicionales.",
                 "authorization_expired": "La autorización para esta transacción ha vencido.",
                 "authorization_revoked": "Se revocó la autorización para esta transacción.",
@@ -431,6 +469,7 @@
                 "not_found": "En este momento tenemos dificultades para procesar tu transacción. Vuelve a intentarlo más tarde.",
                 "payment_config_error": "Algo salió mal en el servidor. Vuelve a intentarlo más tarde.",
                 "payment_config_not_found": "Algo salió mal en el servidor. Vuelve a intentarlo más tarde.",
+                "payment_method_no_longer_available": "Este método de pago ya no está disponible. Elige otro método de pago.",
                 "pending_review": "Su transacción fue autorizada, pero está retenida por el comerciante para su revisión.",
                 "pickup_card": "Su tarjeta no puede ser utilizada para hacer este pago. Póngase en contacto con el emisor de su tarjeta o inténtelo con otra tarjeta.",
                 "processing_error": "En este momento tenemos dificultades para procesar tu transacción. Vuelve a intentarlo más tarde.",
@@ -445,6 +484,7 @@
                 "three_d_secure_declined": "Ha habido un problema con tu pago: revisa tus detalles de pago o comunícate con el emisor de tu tarjeta.",
                 "three_d_secure_failed": "Error en el pago. Vuelve a intentarlo o utiliza una opción de pago diferente.",
                 "three_d_secure_required": "Se requiere autenticación adicional para procesar su pago. Póngase en contacto con nosotros.",
+                "three_d_secure_payment_failed": "La información de la tarjeta de crédito es inválida o falló la verificación 3D Secure. Por favor, prueba con otra tarjeta o vuelve a intentar el pago más adelante.",
                 "token_error": "En este momento tenemos dificultades para procesar tu transacción. Vuelve a intentarlo más tarde.",
                 "transaction_declined": "Su pago fue rechazado. Intente de nuevo.",
                 "transaction_rejected": "El pago fue rechazado. Vuelva a intentarlo.",
@@ -454,7 +494,8 @@
                 "unsupported_request": "No se puede procesar el pago porque se proporcionaron datos no válidos con la transacción.",
                 "user_authorization_error": "Hubo un error al procesar su pago. Póngase en contacto con nosotros.",
                 "vaulting_service_unavailable": "El servicio de bóveda no está disponible actualmente.",
-                "voided_transaction": "Su pago no pudo ser procesado debido a que la transacción ya se anuló. Inténtelo de nuevo o póngase en contacto con nosotros."
+                "voided_transaction": "Su pago no pudo ser procesado debido a que la transacción ya se anuló. Inténtelo de nuevo o póngase en contacto con nosotros.",
+                "bank_declined_authentication": "Your bank declined authentication, please use a different card."
             },
             "ratepay": {
                 "payment_method_title": "Pagar por factura",
@@ -471,6 +512,7 @@
             }
         },
         "redeemable": {
+            "auto_promotion": "Descuento automático",
             "applied_text": "Aplicado",
             "apply_action": "Aplicar",
             "apply_store_credit_after_action": "crédito de la tienda para hacer un pedido",
@@ -481,11 +523,16 @@
             "coupon_location_error": "Tu dirección de envío no cumple con los requisitos de ubicación para el código de cupón que ingresaste.",
             "coupon_min_order_total": "Tu pedido no alcanza el total mínimo para que se aplique este código de cupón.",
             "coupon_text": "Cupón",
+            "coupon_placeholder": "Introduce tus notas aquí",
+            "discounts_text": "Descuentos",
             "gift_certificate_remaining_text": "Restante",
             "gift_certificate_text": "Certificado de regalo",
+            "manual_discount": "Descuento manual",
+            "maximum_discount_applied_text": "Descuento máximo aplicado",
             "remove_action": "Quitar",
             "store_credit_available_text": "Actualmente, tu cuenta tiene {storeCredit} de crédito total de la tienda disponible",
-            "toggle_action": "Cupón/Certificado de regalo"
+            "toggle_action": "Cupón/Certificado de regalo",
+            "total_savings_text": "¡Has <span class=\"total-savings-highlight\">ahorrado{totalDiscount}</span> en total!"
         },
         "remote": {
             "browser_unsupported": "El método de pago seleccionado requiere un navegador web diferente. Elige otro método de pago.",
@@ -515,6 +562,7 @@
             "save_shipping_address_error": "Ocurrió un error al guardar la dirección de envío en tu cotización. Vuelve a intentarlo.",
             "save_shipping_option_error": "Ocurrió un error al guardar la cotización de envío en tu pedido. Vuelve a intentarlo.",
             "select_shipping_address_text": "Selecciona una dirección de envío para ver las cotizaciones de envío",
+            "no_shipping_addresses_warning": "Lo siento, no tienes una dirección de envío para elegir, por favor ve a tu agenda para crear una dirección o contacta con el administrador de tu sitio.",
             "shipping_address_heading": "Dirección de envío",
             "multishipping_consignment_index_heading": "Destino #{consignmentNumber}",
             "multishipping_incomplete_consignment_error": "Completa la dirección, la asignación de artículos y la selección del método para el destino n.°{consignmentNumber}.",
@@ -543,6 +591,10 @@
             "multishipping_left_to_allocate_items_table_item": "Artículo",
             "multishipping_left_to_allocate_items_table_left_to_allocate": "Queda por asignar",
             "multishipping_left_to_allocate_items_table_quantity": "Cantidad",
+            "multishipping_backordered_quantity": "({count} estará en pedido pendiente)",
+            "no_countries_available_heading": "Estamos teniendo problemas para cargar tu país de envío",
+            "no_countries_available_message": "Por favor, actualiza la página o inténtalo de nuevo en un momento. Si el problema continúa, contacta con nuestro equipo de soporte y te ayudaremos a completar tu pedido.",
+            "multishipping_item_split_tooltip_action": "¿Por qué están divididos estos artículos?",
             "multishipping_item_split_tooltip_message": "Estas cantidades de artículos están divididas en una fila separada debido a una promoción por cantidad o a un precio personalizado.",
             "ship_to_multi": "Enviar a varias direcciones",
             "ship_to_single": "Enviar a una sola dirección",
@@ -593,7 +645,13 @@
         "order_confirmation": {
             "mandate": {
                 "adyenv3": {
-                    "boletobancario": "Ticket del Boleto Bancário"
+                    "boletobancario": "Ticket del Boleto Bancário",
+                    "multibanco": {
+                        "reference": "Referencia de pago",
+                        "entity": "Número de entidad",
+                        "expires_at": "Fecha de vencimiento"
+                    },
+                    "oxxo": "Ticket de OXXO"
                 },
                 "bluesnapdirect": {
                     "sepa_direct_debit": "Referencia de mandato de débito directo SEPA: {mandate}"
@@ -632,7 +690,19 @@
             "thank_you_customer_heading": "¡Gracias, {name}!",
             "thank_you_heading": "¡Muchas gracias!",
             "continue_shopping": "Seguir comprando »",
-            "order_status_update_facebook_messenger_heading": "Recibe actualizaciones al instante de tu pedido en Messenger"
+            "order_status_update_facebook_messenger_heading": "Recibe actualizaciones al instante de tu pedido en Messenger",
+            "expired_token": {
+                "heading": "Enlace expirado",
+                "description": "Por seguridad, este enlace expiró.",
+                "resend_action": "Reenviar enlace seguro",
+                "sending": "Enviando...",
+                "resend_success": "Se envió un nuevo enlace a tu dirección de email.",
+                "resend_error": "No se pudo reenviar el enlace. Intente de nuevo más tarde."
+            },
+            "rate_limited": {
+                "heading": "Demasiadas solicitudes",
+                "message": "Hiciste demasiados intentos. Por favor, espera unos minutos y vuelve a intentarlo."
+            }
         }
     }
 }

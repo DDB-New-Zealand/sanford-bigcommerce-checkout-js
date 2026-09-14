@@ -1,9 +1,22 @@
-import { type Address, type AddressKey, type FormField } from '@bigcommerce/checkout-sdk';
+import {
+    type Address,
+    type AddressKey,
+    B2B_EXTRA_FIELD_PREFIX,
+    type FormField,
+    isExtraField,
+} from '@bigcommerce/checkout-sdk/essential';
 
 import { DynamicFormFieldType } from '@bigcommerce/checkout/ui';
 
-export type AddressFormValues = Pick<Address, Exclude<AddressKey, 'customFields'>> & {
+import getAddressExtraFields from './getAddressExtraFields';
+import getShouldSaveAddress from './getShouldSaveAddress';
+
+export type AddressFormValues = Pick<
+    Address,
+    Exclude<AddressKey, 'customFields' | 'extraFields'>
+> & {
     customFields: { [id: string]: any };
+    extraFields?: { [id: string]: any };
 };
 
 export default function mapAddressToFormValues(
@@ -11,47 +24,65 @@ export default function mapAddressToFormValues(
     address?: Address,
 ): AddressFormValues {
     const values = {
-        ...fields.reduce(
-            (addressFormValues, { name, custom, fieldType, default: defaultValue }) => {
-                if (custom) {
-                    if (!addressFormValues.customFields) {
-                        addressFormValues.customFields = {};
-                    }
+        ...fields.reduce((addressFormValues, field) => {
+            const { name, custom, fieldType, default: defaultValue } = field;
 
-                    const field =
-                        address &&
-                        address.customFields &&
-                        address.customFields.find(({ fieldId }) => fieldId === name);
-
-                    const fieldValue = field && field.fieldValue;
-
-                    addressFormValues.customFields[name] = getValue(
-                        fieldType,
-                        fieldValue,
-                        defaultValue,
-                    );
-
-                    return addressFormValues;
+            if (isExtraField(field)) {
+                if (!addressFormValues.extraFields) {
+                    addressFormValues.extraFields = {};
                 }
 
-                if (isSystemAddressFieldName(name)) {
-                    const fieldValue = address && address[name];
+                // SDK schema prefixes extra-field names with `B2B_EXTRA_FIELD_PREFIX`, but `Address.extraFields[i].fieldId`
+                // is the raw id — strip the prefix when matching.
+                const rawFieldId = name.startsWith(B2B_EXTRA_FIELD_PREFIX)
+                    ? name.slice(B2B_EXTRA_FIELD_PREFIX.length)
+                    : name;
+                const extraFieldValue = getAddressExtraFields(address).find(
+                    ({ fieldId }) => fieldId === rawFieldId,
+                )?.fieldValue;
 
-                    addressFormValues[name] = getValue(
-                        fieldType,
-                        fieldValue,
-                        defaultValue,
-                    )?.toString() || '';
-                }
+                addressFormValues.extraFields[name] = extraFieldValue ?? defaultValue ?? '';
 
                 return addressFormValues;
-            },
-            {} as AddressFormValues,
-        ),
+            }
+
+            if (custom) {
+                if (!addressFormValues.customFields) {
+                    addressFormValues.customFields = {};
+                }
+
+                const field =
+                    address &&
+                    address.customFields &&
+                    address.customFields.find(({ fieldId }) => fieldId === name);
+
+                const fieldValue = field && field.fieldValue;
+
+                addressFormValues.customFields[name] = getValue(
+                    fieldType,
+                    fieldValue,
+                    defaultValue,
+                );
+
+                return addressFormValues;
+            }
+
+            if (isSystemAddressFieldName(name)) {
+                const fieldValue = address && address[name];
+
+                addressFormValues[name] =
+                    getValue(fieldType, fieldValue, defaultValue)?.toString() || '';
+            }
+
+            return addressFormValues;
+        }, {} as AddressFormValues),
     };
 
-    values.shouldSaveAddress =
-        address && address.shouldSaveAddress !== undefined ? address.shouldSaveAddress : true;
+    values.shouldSaveAddress = getShouldSaveAddress(address);
+
+    if (address?.label !== undefined) {
+        values.label = address.label;
+    }
 
     // Manually backfill stateOrProvince to avoid Formik warning (uncontrolled to controlled input)
     if (values.stateOrProvince === undefined) {
@@ -78,7 +109,7 @@ function getValue(
         if (fieldValue) {
             const [year, month, day] = fieldValue.split('-');
 
-            return new Date(Number(year), Number(month)-1, Number(day));
+            return new Date(Number(year), Number(month) - 1, Number(day));
         }
 
         return undefined;
@@ -101,6 +132,10 @@ function getDefaultValue(fieldType?: string, defaultValue?: string): string | st
 
 function isSystemAddressFieldName(
     fieldName: string,
-): fieldName is Exclude<keyof Address, 'customFields' | 'shouldSaveAddress'> {
-    return fieldName !== 'customFields' && fieldName !== 'shouldSaveAddress';
+): fieldName is Exclude<keyof Address, 'customFields' | 'shouldSaveAddress' | 'extraFields'> {
+    return (
+        fieldName !== 'customFields' &&
+        fieldName !== 'shouldSaveAddress' &&
+        fieldName !== 'extraFields'
+    );
 }

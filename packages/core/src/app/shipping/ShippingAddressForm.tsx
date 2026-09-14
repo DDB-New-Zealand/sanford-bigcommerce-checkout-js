@@ -1,16 +1,17 @@
-import {
-    type Address,
-    type Consignment,
-    type FormField,
-} from '@bigcommerce/checkout-sdk';
+import { type Address, type Consignment, type FormField } from '@bigcommerce/checkout-sdk';
 import React, { type ReactElement } from 'react';
 
-import { useCheckout } from '@bigcommerce/checkout/contexts';
-import { LoadingOverlay } from '@bigcommerce/checkout/ui';
+import { useCapabilities, useCheckout } from '@bigcommerce/checkout/contexts';
+import { Fieldset, LoadingOverlay } from '@bigcommerce/checkout/ui';
 
-import { AddressForm, AddressSelect, AddressType, isValidCustomerAddress } from '../address';
+import {
+    AddressForm,
+    AddressSelect,
+    AddressType,
+    decodeAddressLabel,
+    isValidCustomerAddress,
+} from '../address';
 import { connectFormik, type ConnectFormikProps } from '../common/form';
-import { Fieldset } from '../ui/form';
 
 import { type SingleShippingFormValues } from './SingleShippingForm';
 
@@ -19,6 +20,7 @@ export interface ShippingAddressFormProps {
     consignments: Consignment[];
     isLoading: boolean;
     formFields: FormField[];
+    validateMaxLength: boolean;
     onUseNewAddress(): void;
     onFieldChange(fieldName: string, value: string): void;
     onAddressSelect(address: Address): void;
@@ -26,31 +28,31 @@ export interface ShippingAddressFormProps {
 
 const addressFieldName = 'shippingAddress';
 
-const ShippingAddressForm = (
-    {
-        address: shippingAddress,
-        onAddressSelect,
-        onUseNewAddress,
-        formFields,
-        isLoading,
-        formik: {
-            values: { shippingAddress: formAddress },
-            setFieldValue: formikSetFieldValue,
-        },
-        onFieldChange,
-    }: ShippingAddressFormProps & ConnectFormikProps<SingleShippingFormValues>,
-): ReactElement => {
+const ShippingAddressForm = ({
+    address: shippingAddress,
+    onAddressSelect,
+    onUseNewAddress,
+    formFields,
+    isLoading,
+    validateMaxLength,
+    formik: {
+        values: { shippingAddress: formAddress },
+        setFieldValue: formikSetFieldValue,
+    },
+    onFieldChange,
+}: ShippingAddressFormProps & ConnectFormikProps<SingleShippingFormValues>): ReactElement => {
     const {
-        checkoutState:{
-            data:{
-                getCustomer,
-            },
-        },
-    } = useCheckout();
+        selectedState: { customer },
+    } = useCheckout(({ data }) => ({ customer: data.getCustomer() }));
+    const {
+        shipping: { hideSaveToAddressBookCheck, restrictManualAddressEntry },
+        userJourney: { hasAddressLabel },
+    } = useCapabilities();
 
-    const customer = getCustomer();
-    const addresses = customer?.addresses || [];
-    const shouldShowSaveAddress = !(customer?.isGuest);
+    const rawAddresses = customer?.addresses || [];
+    const addresses = rawAddresses.map((address) => decodeAddressLabel(address, hasAddressLabel));
+    const decodedShippingAddress = decodeAddressLabel(shippingAddress, hasAddressLabel);
+    const shouldShowSaveAddress = !hideSaveToAddressBookCheck && !customer?.isGuest;
 
     const setFieldValue = (fieldName: string, fieldValue: string) => {
         const customFormFieldNames = formFields
@@ -80,11 +82,12 @@ const ShippingAddressForm = (
         }
     };
 
-    const hasAddresses = addresses && addresses.length > 0;
+    const hasAddresses = rawAddresses.length > 0;
     const hasValidCustomerAddress = isValidCustomerAddress(
-        shippingAddress,
+        decodedShippingAddress,
         addresses,
         formFields,
+        validateMaxLength,
     );
 
     return (
@@ -97,7 +100,7 @@ const ShippingAddressForm = (
                             onSelectAddress={onAddressSelect}
                             onUseNewAddress={onUseNewAddress}
                             selectedAddress={
-                                hasValidCustomerAddress ? shippingAddress : undefined
+                                hasValidCustomerAddress ? decodedShippingAddress : undefined
                             }
                             type={AddressType.Shipping}
                         />
@@ -105,7 +108,7 @@ const ShippingAddressForm = (
                 </Fieldset>
             )}
 
-            {!hasValidCustomerAddress && (
+            {!restrictManualAddressEntry && !hasValidCustomerAddress && (
                 <LoadingOverlay isLoading={isLoading} unmountContentWhenLoading>
                     <AddressForm
                         countryCode={formAddress && formAddress.countryCode}

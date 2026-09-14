@@ -2,20 +2,27 @@
 
 // TODO: CHECKOUT-9010 Cover 'Customer registration failure due to using an existing email' in functional tests repo
 import { type FormField } from '@bigcommerce/checkout-sdk';
-import classNames from 'classnames';
 import { type FormikProps, withFormik } from 'formik';
 import { noop } from 'lodash';
 import React, { type FunctionComponent, useMemo } from 'react';
 
-import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
-import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
-import { DynamicFormField } from '@bigcommerce/checkout/ui';
+import {
+    TranslatedString,
+    withLanguage,
+    type WithLanguageProps,
+} from '@bigcommerce/checkout/locale';
+import {
+    Alert,
+    AlertType,
+    Button,
+    ButtonVariant,
+    DynamicFormField,
+    Fieldset,
+    Form,
+} from '@bigcommerce/checkout/ui';
 
 import { isRequestError } from '../common/error';
-import { Alert, AlertType } from '../ui/alert';
-import { Button, ButtonVariant } from '../ui/button';
-import { Fieldset, Form } from '../ui/form';
 
 import getCreateCustomerValidationSchema, {
     type CreateAccountFormValues,
@@ -36,7 +43,10 @@ export interface CreateAccountFormProps {
     onSubmit(values: CreateAccountFormValues): void;
 }
 
-function getAcceptsMarketingEmailsDefault(defaultShouldSubscribe: boolean, requiresMarketingConsent: boolean): string[] {
+function getAcceptsMarketingEmailsDefault(
+    defaultShouldSubscribe: boolean,
+    requiresMarketingConsent: boolean,
+): string[] {
     if (defaultShouldSubscribe) {
         return ['1'];
     }
@@ -44,25 +54,28 @@ function getAcceptsMarketingEmailsDefault(defaultShouldSubscribe: boolean, requi
     return requiresMarketingConsent ? [] : ['0'];
 }
 
-function transformFormFieldsData(formFields: FormField[], defaultShouldSubscribe: boolean): FormField[] {
-    return formFields.map(field => {
+function transformFormFieldsData(
+    formFields: FormField[],
+    defaultShouldSubscribe: boolean,
+): FormField[] {
+    return formFields.map((field) => {
         if (field.name === 'acceptsMarketingEmails') {
             const { options } = field;
             const items = options?.items || [];
 
-            const updatedItems = items.map(item => {
+            const updatedItems = items.map((item) => {
                 return {
                     value: defaultShouldSubscribe ? '1' : item.value,
                     label: item.label,
-                }
+                };
             });
 
             return {
                 ...field,
                 options: {
                     items: updatedItems,
-                }
-            }
+                },
+            };
         }
 
         return field;
@@ -71,8 +84,15 @@ function transformFormFieldsData(formFields: FormField[], defaultShouldSubscribe
 
 const CreateAccountForm: FunctionComponent<
     CreateAccountFormProps & WithLanguageProps & FormikProps<CreateAccountFormValues>
-> = ({ formFields, createAccountError, isCreatingAccount, isExecutingPaymentMethodCheckout, onCancel, isFloatingLabelEnabled, defaultShouldSubscribe }) => {
-    const { themeV2 } = useThemeContext();
+> = ({
+    formFields,
+    createAccountError,
+    isCreatingAccount,
+    isExecutingPaymentMethodCheckout,
+    onCancel,
+    isFloatingLabelEnabled,
+    defaultShouldSubscribe,
+}) => {
     const createAccountErrorMessage = useMemo(() => {
         if (!createAccountError) {
             return;
@@ -117,7 +137,6 @@ const CreateAccountForm: FunctionComponent<
                             isFloatingLabelEnabled={isFloatingLabelEnabled}
                             key={field.id}
                             parentFieldName={field.custom ? 'customFields' : undefined}
-                            themeV2={themeV2}
                         />
                     ))}
                 </div>
@@ -125,7 +144,7 @@ const CreateAccountForm: FunctionComponent<
 
             <div className="form-actions">
                 <Button
-                    className={themeV2 ? 'body-bold' : ''}
+                    className="optimizedCheckout-contentPrimary body-bold"
                     disabled={isCreatingAccount || isExecutingPaymentMethodCheckout}
                     id="checkout-customer-create"
                     isLoading={isCreatingAccount || isExecutingPaymentMethodCheckout}
@@ -137,8 +156,7 @@ const CreateAccountForm: FunctionComponent<
                 </Button>
 
                 <a
-                    className={classNames('button optimizedCheckout-buttonSecondary',
-                        { 'body-bold': themeV2 })}
+                    className="button optimizedCheckout-buttonSecondary body-bold"
                     data-test="customer-cancel-button"
                     href="#"
                     id="checkout-customer-cancel"
@@ -162,7 +180,10 @@ export default withLanguage(
             email: '',
             password: '',
             customFields: {},
-            acceptsMarketingEmails: getAcceptsMarketingEmailsDefault(defaultShouldSubscribe, requiresMarketingConsent),
+            acceptsMarketingEmails: getAcceptsMarketingEmailsDefault(
+                defaultShouldSubscribe,
+                requiresMarketingConsent,
+            ),
         }),
         validationSchema: ({
             language,

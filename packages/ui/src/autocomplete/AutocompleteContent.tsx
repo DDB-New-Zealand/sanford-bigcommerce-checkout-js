@@ -1,8 +1,6 @@
 import type { GetInputPropsOptions, GetItemPropsOptions, GetMenuPropsOptions } from 'downshift';
 import { includes, isNumber } from 'lodash';
-import React, { type ReactNode } from 'react';
-
-import { useThemeContext } from '@bigcommerce/checkout/contexts';
+import React, { type ReactNode, useCallback, useLayoutEffect, useRef } from 'react';
 
 import { Label } from '../form';
 import { Popover, PopoverList } from '../popover';
@@ -38,12 +36,43 @@ const AutocompleteContent: React.FC<AutocompleteContentProps> = ({
     listTestId,
     children,
 }) => {
-    const { themeV2 } = useThemeContext();
+    const inputRef = useRef<HTMLInputElement>(null);
+    const selectionRef = useRef<{ start: number | null; end: number | null }>({
+        start: null,
+        end: null,
+    });
+
     const baseInputProps = getInputProps({ value: initialValue });
     const combinedProps = { ...baseInputProps, ...inputProps };
 
     // Extract labelText to avoid passing it to input element
     const { labelText: _labelText, ...validInputProps } = combinedProps;
+
+    const originalOnChange = validInputProps.onChange;
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            selectionRef.current = {
+                start: e.target.selectionStart,
+                end: e.target.selectionEnd,
+            };
+            originalOnChange?.(e);
+        },
+        [originalOnChange],
+    );
+
+    useLayoutEffect(() => {
+        const input = inputRef.current;
+
+        if (!input || document.activeElement !== input) {
+            return;
+        }
+
+        const { start, end } = selectionRef.current;
+
+        if (start !== null) {
+            input.setSelectionRange(start, end ?? start);
+        }
+    }, [initialValue]);
 
     const getProps = (index: number, itemId: string) => {
         const autocompleteItem = items.find((item) => item.id === itemId);
@@ -61,10 +90,9 @@ const AutocompleteContent: React.FC<AutocompleteContentProps> = ({
 
     return (
         <>
-            <input {...validInputProps} />
+            <input ref={inputRef} {...validInputProps} onChange={handleChange} />
             {inputProps && includes(inputProps.className, 'floating') && (
                 <Label
-                    additionalClassName={themeV2 ? 'floating-form-field-label' : ''}
                     htmlFor={inputProps.id}
                     id={inputProps['aria-labelledby']}
                     isFloatingLabelEnabled={true}

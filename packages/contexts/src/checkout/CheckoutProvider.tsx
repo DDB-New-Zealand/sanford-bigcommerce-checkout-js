@@ -1,12 +1,7 @@
-import { type CheckoutSelectors, type CheckoutService } from '@bigcommerce/checkout-sdk';
-import React, {
-    type ReactElement,
-    type ReactNode,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import { type CheckoutService } from '@bigcommerce/checkout-sdk';
+import React, { type ReactNode, useMemo } from 'react';
+
+import { CapabilitiesProvider } from '../capabilities';
 
 import CheckoutContext from './CheckoutContext';
 import type ErrorLogger from './ErrorLogger';
@@ -17,39 +12,25 @@ export interface CheckoutProviderProps {
     errorLogger?: ErrorLogger;
 }
 
-const CheckoutProvider = ({
+const CheckoutProvider: React.FC<CheckoutProviderProps> = ({
     checkoutService,
     errorLogger,
     children,
-}: CheckoutProviderProps): ReactElement => {
-    const [checkoutState, setCheckoutState] = useState<CheckoutSelectors>(() =>
-        checkoutService.getState(),
-    );
-    const unsubscribeRef = useRef<(() => void) | undefined>();
-
+}) => {
     const contextValue = useMemo(
         () => ({
             checkoutService,
-            checkoutState,
+            checkoutState: checkoutService.getState(), // TODO: this can be removed once experiment is over
             errorLogger,
         }),
-        [checkoutService, checkoutState, errorLogger],
+        [checkoutService, errorLogger],
     );
 
-    useEffect(() => {
-        unsubscribeRef.current = checkoutService.subscribe((newCheckoutState) =>
-            setCheckoutState(newCheckoutState),
-        );
-
-        return () => {
-            if (unsubscribeRef.current) {
-                unsubscribeRef.current();
-                unsubscribeRef.current = undefined;
-            }
-        };
-    }, [checkoutService]);
-
-    return <CheckoutContext.Provider value={contextValue}>{children}</CheckoutContext.Provider>;
+    return (
+        <CheckoutContext.Provider value={contextValue}>
+            <CapabilitiesProvider>{children}</CapabilitiesProvider>
+        </CheckoutContext.Provider>
+    );
 };
 
 export default CheckoutProvider;

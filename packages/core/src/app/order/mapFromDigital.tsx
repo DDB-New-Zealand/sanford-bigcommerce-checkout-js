@@ -1,12 +1,46 @@
-import { type DigitalItem } from '@bigcommerce/checkout-sdk';
+import { type DigitalItem, type PhysicalItem } from '@bigcommerce/checkout-sdk';
 import React from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 
 import getOrderSummaryItemImage from './getOrderSummaryItemImage';
-import { type OrderSummaryItemOption, type OrderSummaryItemProps } from './OrderSummaryItem';
+import { mapBackorderDetails } from './mapBackorderDetails';
+import { type OrderItemType, type OrderSummaryItemOption } from './OrderSummaryItem';
 
-function mapFromDigital(item: DigitalItem): OrderSummaryItemProps {
+function mapFromDigital(
+    item: DigitalItem,
+    bundleItemsMap?: Map<string | number, Array<PhysicalItem | DigitalItem>>,
+): OrderItemType {
+    const bundledItems = bundleItemsMap?.get(String(item.id));
+    const bundledItemsAddedByAttributeIds = bundledItems?.flatMap(({ addedByAttributeId }) =>
+        addedByAttributeId ? [addedByAttributeId] : [],
+    );
+
+    const mappedOptions = item.options?.map((option) => {
+        if (option.attributeId && bundledItemsAddedByAttributeIds?.includes(option.attributeId)) {
+            const bundledItem = bundledItems?.find(
+                ({ addedByAttributeId }) => addedByAttributeId === option.attributeId,
+            );
+
+            return {
+                testId: 'cart-item-product-option',
+                content: `${option.name}: ${option.value}`,
+                name: `${option.name}:`,
+                value: option.value,
+                isMainBundledItem: true,
+                stockPosition: bundledItem ? mapBackorderDetails(bundledItem) : undefined,
+            };
+        }
+
+        return {
+            testId: 'cart-item-product-option',
+            content: `${option.name}: ${option.value}`,
+            name: `${option.name}:`,
+            value: option.value,
+            isMainBundledItem: false,
+        };
+    });
+
     return {
         id: item.id,
         quantity: item.quantity,
@@ -14,13 +48,8 @@ function mapFromDigital(item: DigitalItem): OrderSummaryItemProps {
         amountAfterDiscount: item.extendedSalePrice,
         name: item.name,
         image: getOrderSummaryItemImage(item),
-        productOptions: [
-            ...(item.options || []).map((option) => ({
-                testId: 'cart-item-product-option',
-                content: `${option.name} ${option.value}`,
-            })),
-            getDigitalItemDescription(item),
-        ],
+        productOptions: [...(mappedOptions || []), getDigitalItemDescription(item)],
+        ...mapBackorderDetails(item),
     };
 }
 

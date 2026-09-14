@@ -28,6 +28,10 @@
         }
     }
 
+    .form-fieldset--storedInstrument,.form-fieldset--creditCardFieldset {
+        margin-bottom: spacing("half");
+    }
+
     #checkoutShippingAddress.form-fieldset:has(.floating-form-field) {
         margin-bottom: $fontSize-root - $floating-form-field-spacing;
     }
@@ -36,6 +40,10 @@
         .form-fieldset {
             margin-bottom: 0;
         }
+    }
+
+    .floating-input, .floating-select, .floating-textarea {
+        background-color: $floating-label-bg-color;
     }
 
     .form-field {
@@ -48,25 +56,66 @@
 
         .floating-input,
         .floating-select {
-            background-color: $floating-label-bg-color;
-            font-size: $floating-label-font-size--default;
+            font-size: $input-font-size--mobile-min;
             height: $floating-label-input-height;
             padding-bottom: 0;
             padding-left: $input-horizontalPadding;
             padding-right: $input-horizontalPadding;
             padding-top: $input-verticalPadding * 1.5;
 
+            @media (min-width: $screen-small) and (min-height: $screen-small-landscape-height) {
+                font-size: $floating-label-font-size--default;
+            }
+
             &.floating-form-field-input {
-                color: $color-black;
                 font-family: $fontFamily-montserrat;
-                font-size: $fontSize-smallest;
+                font-size: $input-font-size--mobile-min;
                 font-weight: $fontWeight-normal;
+
+                @media (min-width: $screen-small) and (min-height: $screen-small-landscape-height) {
+                    font-size: $fontSize-smallest;
+                }
             }
         }
 
         .floating-textarea {
-            background-color: $floating-label-bg-color;
             padding-top: $input-verticalPadding * 2.5;
+        }
+
+        // phone validation
+        .iti {
+            display: block;
+            position: relative;
+            width: 100%;
+
+            input.iti__tel-input {
+                float: none;
+            }
+
+            .iti__selected-country-primary {
+                // remove default background to align with out form style
+                background-color: transparent !important;
+            }
+
+            .iti__dropdown-content {
+                max-width: remCalc(300px);
+            }
+        }
+
+        .iti-wrapper {
+            display: block;
+
+            .iti__country-container:has(+ input.floating-input) {
+                top: $input-verticalPadding * 1.5;
+                bottom: auto;
+                height: $floating-label-input-height - $input-verticalPadding * 1.5;
+                padding-top: $input-verticalPadding * 0.5;
+                padding-bottom: $input-verticalPadding * 0.5;
+            }
+
+            .iti__selected-country-primary {
+                padding: 0 var(--iti-arrow-padding) 0 1.05rem;
+            }
         }
 
         .dropdown-chevron,
@@ -92,22 +141,11 @@
                 font-size: $floating-label-font-size--default;
                 vertical-align: baseline;
             }
-
-            &.floating-form-field-label {
-                color: $color-secondaryDarkest;
-                font-family: $fontFamily-montserrat;
-                font-size: $fontSize-smallest;
-                font-weight: $fontWeight-medium;
-                margin-top: spacing("eighth");
-
-                small {
-                    font-size: $fontSize-smallest;
-                }
-            }
         }
 
         .react-datepicker__tab-loop + .floating-label,
         .react-datepicker-wrapper + .floating-label,
+        .iti-wrapper + .floating-label,
         select + .floating-label,
         textarea:focus + .floating-label,
         textarea:not(:empty) + .floating-label,
@@ -122,18 +160,6 @@
             small {
                 font-size: fontSize("tiny");
             }
-
-            &.floating-form-field-label{
-                color: $color-secondaryDarkest;
-                font-family: $fontFamily-montserrat;
-                font-size: $fontSize-tiny;
-                font-weight: $fontWeight-medium;
-                margin-top: 0;
-
-                small {
-                    font-size: $fontSize-tiny;
-                }
-            }
         }
     }
 
@@ -145,12 +171,13 @@
         }
     }
 
-    .floating-label + .form-field-errors,
-    .dynamic-form-field--addressLineAutocomplete.floating-form-field .form-field-errors {
-        padding-top: $floating-label-error-padding-top;
-    }
-
     .form-input {
+        font-size: $input-font-size--mobile-min;
+
+        @media (min-width: $screen-small) and (min-height: $screen-small-landscape-height) {
+            font-size: $input-font-size;
+        }
+
         &:focus,
         &--focus {
             box-shadow: $input-focus-boxShadow, $input-box-shadow;
@@ -158,6 +185,14 @@
 
         &.form-input--withIcon {
             padding-right: #{$input-formIcon-width + spacing("single")};
+        }
+    }
+
+    .enhancedThemeV1 .form-input.body-regular {
+        font-size: $input-font-size--mobile-min;
+
+        @media (min-width: $screen-small) and (min-height: $screen-small-landscape-height) {
+            font-size: $fontSize-base;
         }
     }
 
@@ -238,7 +273,12 @@
         -webkit-appearance: none; // 2
         background-image: none;
         border-radius: $input-border-radius;
+        font-size: $input-font-size--mobile-min;
         padding: $input-verticalPadding $select-paddingRight $input-verticalPadding $input-horizontalPadding;
+
+        @media (min-width: $screen-small) and (min-height: $screen-small-landscape-height) {
+            font-size: $input-font-size;
+        }
     }
     // scss-lint:enable ImportantRule
 }

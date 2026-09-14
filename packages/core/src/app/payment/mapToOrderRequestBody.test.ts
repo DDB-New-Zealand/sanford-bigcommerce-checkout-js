@@ -4,10 +4,12 @@ import mapToOrderRequestBody from './mapToOrderRequestBody';
 
 describe('mapToOrderRequestBody()', () => {
     it('transforms credit card form values into order payload', () => {
+        const year = getYear(-2);
+        const cardDataYear = year.slice(-2);
         const result = mapToOrderRequestBody(
             {
                 ccCvv: '123',
-                ccExpiry: '12/23',
+                ccExpiry: `12/${cardDataYear}`,
                 ccName: 'Big Shopper',
                 ccNumber: '4111 1111 1111 1111',
                 shouldSaveInstrument: true,
@@ -24,7 +26,7 @@ describe('mapToOrderRequestBody()', () => {
                     ccCvv: '123',
                     ccExpiry: {
                         month: '12',
-                        year: getYear(-2),
+                        year,
                     },
                     ccName: 'Big Shopper',
                     ccNumber: '4111111111111111',
@@ -62,6 +64,40 @@ describe('mapToOrderRequestBody()', () => {
         const result = mapToOrderRequestBody(
             {
                 paymentProviderRadio: 'adyen-paypal',
+            },
+            true,
+        );
+
+        expect(result).toEqual({
+            payment: {
+                gatewayId: 'adyen',
+                methodId: 'paypal',
+            },
+        });
+    });
+
+    it('uses methodIdOverride as methodId when provided', () => {
+        const result = mapToOrderRequestBody(
+            {
+                paymentProviderRadio: 'adyen-paypal',
+                methodIdOverride: 'scheme',
+            },
+            true,
+        );
+
+        expect(result).toEqual({
+            payment: {
+                gatewayId: 'adyen',
+                methodId: 'scheme',
+            },
+        });
+    });
+
+    it('falls back to parsed methodId when methodIdOverride is an empty string', () => {
+        const result = mapToOrderRequestBody(
+            {
+                paymentProviderRadio: 'adyen-paypal',
+                methodIdOverride: '',
             },
             true,
         );

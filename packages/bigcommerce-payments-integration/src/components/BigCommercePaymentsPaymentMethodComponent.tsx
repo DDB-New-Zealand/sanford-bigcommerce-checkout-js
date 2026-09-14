@@ -11,10 +11,11 @@ import {
     createBigCommercePaymentsAlternativeMethodsPaymentStrategy,
     createBigCommercePaymentsPayLaterPaymentStrategy,
     createBigCommercePaymentsVenmoPaymentStrategy,
-    createBigCommercePaymentsKlarnaPaymentStrategy,
+    createBigCommercePaymentsRedirectAlternativeMethodsPaymentStrategy,
 } from '@bigcommerce/checkout-sdk/integrations/bigcommerce-payments';
 import React, { type FunctionComponent, useCallback, useEffect, useRef } from 'react';
 
+import { InstrumentDeclinedError } from '@bigcommerce/checkout/error-handling-utils';
 import { type PaymentMethodProps } from '@bigcommerce/checkout/payment-integration-api';
 
 type BigCommercePaymentsProvidersPaymentInitializeOptions =
@@ -46,7 +47,6 @@ const BigCommercePaymentsPaymentMethodComponent: FunctionComponent<
     providerOptionsData,
     children,
     currentInstrument,
-    language,
     shouldConfirmInstrument,
 }) => {
     const buttonActionsRef = useRef<ButtonActions | null>(null);
@@ -114,7 +114,7 @@ const BigCommercePaymentsPaymentMethodComponent: FunctionComponent<
                     createBigCommercePaymentsAlternativeMethodsPaymentStrategy,
                     createBigCommercePaymentsPayLaterPaymentStrategy,
                     createBigCommercePaymentsVenmoPaymentStrategy,
-                    createBigCommercePaymentsKlarnaPaymentStrategy,
+                    createBigCommercePaymentsRedirectAlternativeMethodsPaymentStrategy,
                 ],
                 [providerOptionsKey]: {
                     container: '#checkout-payment-continue',
@@ -133,9 +133,7 @@ const BigCommercePaymentsPaymentMethodComponent: FunctionComponent<
                         paymentForm.disableSubmit(method, true);
 
                         if (error.message === 'INSTRUMENT_DECLINED') {
-                            onUnhandledError(
-                                new Error(language.translate('payment.errors.instrument_declined')),
-                            );
+                            onUnhandledError(new InstrumentDeclinedError());
                         } else {
                             onUnhandledError(error);
                         }

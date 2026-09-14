@@ -4,16 +4,22 @@ import React, { type FunctionComponent } from 'react';
 import { Extension } from '@bigcommerce/checkout/checkout-extension';
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
+import {
+    Alert,
+    AlertType,
+    Button,
+    ButtonVariant,
+    Fieldset,
+    Legend,
+} from '@bigcommerce/checkout/ui';
 
 import { OrderComments } from '../orderComments';
-import { Alert, AlertType } from '../ui/alert';
-import { Button, ButtonVariant } from '../ui/button';
-import { Fieldset, Legend } from '../ui/form';
 
 import { ShippingOptions } from './shippingOption';
 
 export interface ShippingFormFooterProps {
     cartHasChanged: boolean;
+    defaultShippingExpectationMessage?: string;
     isMultiShippingMode: boolean;
     shouldShowOrderComments: boolean;
     shouldShowShippingOptions?: boolean;
@@ -25,6 +31,7 @@ export interface ShippingFormFooterProps {
 
 const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
     cartHasChanged,
+    defaultShippingExpectationMessage,
     isMultiShippingMode,
     shouldShowOrderComments,
     shouldShowShippingOptions = true,
@@ -33,7 +40,7 @@ const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
     isLoading,
     shippingFormRenderTimestamp,
 }) => {
-    const { themeV2 } = useThemeContext();
+    const { enhancedThemeV1 } = useThemeContext();
 
     return (
         <>
@@ -42,9 +49,20 @@ const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
                 id="checkout-shipping-options"
                 legend={
                     <>
-                        <Legend themeV2={themeV2}>
-                            <TranslatedString id="shipping.shipping_method_label" />
+                        <Legend>
+                            <TranslatedString
+                                id={
+                                    enhancedThemeV1
+                                        ? 'shipping.shipping_method_label_v2'
+                                        : 'shipping.shipping_method_label'
+                                }
+                            />
                         </Legend>
+                        {defaultShippingExpectationMessage && (
+                            <p className="shipping-ExpectationMessage">
+                                {defaultShippingExpectationMessage}
+                            </p>
+                        )}
 
                         {cartHasChanged && (
                             <Alert type={AlertType.Error}>
@@ -69,14 +87,20 @@ const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
 
             <div className="form-actions">
                 <Button
-                    className={themeV2 ? 'body-bold' : ''}
+                    className="optimizedCheckout-contentPrimary body-bold"
                     disabled={shouldDisableSubmit}
                     id="checkout-shipping-continue"
                     isLoading={isLoading}
                     type="submit"
                     variant={ButtonVariant.Primary}
                 >
-                    <TranslatedString id="common.continue_action" />
+                    <TranslatedString
+                        id={
+                            enhancedThemeV1
+                                ? 'common.continue_to_payment_action'
+                                : 'common.continue_action'
+                        }
+                    />
                 </Button>
             </div>
         </>

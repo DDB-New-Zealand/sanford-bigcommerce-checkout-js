@@ -16,14 +16,23 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
+const WithCapabilitiesProvider = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <CheckoutProvider checkoutService={createCheckoutService()}>{children}</CheckoutProvider>
+    );
+};
+
 const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
     render(ui, { ...options, wrapper: AllTheProviders, legacyRoot: true });
-const customRenderWithoutWrapper = (ui: ReactElement, options?: RenderOptions) =>
-    render(ui, { ...options, legacyRoot: true });
+
+const customRenderWithCapabilitiesOnly = (
+    ui: ReactElement,
+    options?: Omit<RenderOptions, 'wrapper'>,
+) => render(ui, { ...options, wrapper: WithCapabilitiesProvider, legacyRoot: true });
 
 // eslint-disable-next-line import/export
 export * from '@testing-library/react';
 
 // eslint-disable-next-line import/export
 export { customRender as render };
-export { customRenderWithoutWrapper as renderWithoutWrapper };
+export { customRenderWithCapabilitiesOnly as renderWithoutWrapper };

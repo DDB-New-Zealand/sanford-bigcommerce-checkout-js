@@ -1,11 +1,8 @@
 import { type Address } from '@bigcommerce/checkout-sdk';
-import classNames from 'classnames';
 import { isEmpty } from 'lodash';
-import React from "react";
+import React from 'react';
 
-import { useThemeContext } from '@bigcommerce/checkout/contexts';
-
-import type AddressType from "./AddressType";
+import type AddressType from './AddressType';
 
 export interface SingleLineStaticAddressProps {
     address: Address;
@@ -34,17 +31,15 @@ export const getAddressContent: (value: Address) => string = ({
 };
 
 const SingleLineStaticAddress = ({ address }: SingleLineStaticAddressProps) => {
-    const { themeV2 } = useThemeContext();
-
     const isValid = !isEmpty(address);
 
     return !isValid ? null : (
         <div className="vcard checkout-address--static" data-test="static-address">
-            <p className={classNames('address-entry', { 'body-regular': themeV2 })}>
+            <p className="address-entry optimizedCheckout-contentPrimary body-regular">
                 {getAddressContent(address)}
             </p>
         </div>
     );
-}
+};
 
 export default SingleLineStaticAddress;

@@ -1,10 +1,8 @@
 import { type FieldProps } from 'formik';
 import React, { type FunctionComponent, memo } from 'react';
 
-import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedHtml } from '@bigcommerce/checkout/locale';
-
-import { Input, Label } from '../ui/form';
+import { Input, Label } from '@bigcommerce/checkout/ui';
 
 export type SubscribeFieldProps = FieldProps<boolean> & {
     requiresMarketingConsent: boolean;
@@ -14,8 +12,6 @@ const SubscribeField: FunctionComponent<SubscribeFieldProps> = ({
     field,
     requiresMarketingConsent,
 }) => {
-    const { themeV2 } = useThemeContext();
-
     return (
         <>
             <Input
@@ -28,10 +24,7 @@ const SubscribeField: FunctionComponent<SubscribeFieldProps> = ({
                 value={String(field.value)}
             />
 
-            <Label
-                additionalClassName={themeV2 ? 'body-regular' : ''}
-                htmlFor={field.name}
-            >
+            <Label additionalClassName="body-regular" htmlFor={field.name}>
                 <TranslatedHtml
                     id={
                         requiresMarketingConsent
@@ -42,6 +35,6 @@ const SubscribeField: FunctionComponent<SubscribeFieldProps> = ({
             </Label>
         </>
     );
-}
+};
 
 export default memo(SubscribeField);

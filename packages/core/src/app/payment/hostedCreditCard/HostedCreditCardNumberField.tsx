@@ -1,9 +1,7 @@
 import React, { type FunctionComponent, useCallback } from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
-import { FormField, TextInputIframeContainer } from '../../ui/form';
-import { IconLock } from '../../ui/icon';
+import { FormField, IconLock, TextInputIframeContainer } from '@bigcommerce/checkout/ui';
 
 export interface HostedCreditCardNumberFieldProps {
     appearFocused: boolean;

@@ -9,6 +9,7 @@
             "consignment_address_updated_text": "Het item is toegewezen aan het nieuwe adres.",
             "city_label": "Plaats",
             "city_required_error": "Plaats is vereist",
+            "address_label_label": "Adreslabel",
             "company_name_label": "Bedrijfsnaam",
             "company_name_required_error": "Bedrijf is vereist",
             "confirm_address_action": "Doorgaan met huidig adres",
@@ -18,10 +19,14 @@
             "custom_required_error": "{label} is vereist",
             "custom_min_error": "{label} mag niet korter zijn dan {min} tekens",
             "custom_max_error": "{label} mag niet langer zijn dan {max} tekens",
+            "custom_min_number_error": "{label} moet groter of gelijk zijn aan {min}",
+            "custom_max_number_error": "{label} moet kleiner of gelijk zijn aan {max}",
+            "custom_range_error": "{label} moet tussen {min} en {max} liggen",
             "invalid_characters_error": "{label} bevat ongeldige tekens",
             "custom_valid_error": "{label} is niet geldig",
             "edit_address_action": "Adres bewerken",
             "enter_address_action": "Voer een nieuw adres in",
+            "select_address_action": "Selecteer een adres",
             "enter_or_select_address_action": "Selecteer of voer een ander adres in",
             "add_address_heading": "Voeg adres toe",
             "save_address_action": "Adres opslaan",
@@ -30,10 +35,13 @@
             "last_name_label": "Achternaam",
             "last_name_required_error": "Achternaam is vereist",
             "phone_number_label": "Telefoonnummer",
+            "phone_number_invalid_error": "Het ingevoerde telefoonnummer is niet geldig",
             "phone_number_required_error": "Telefoonnummer is vereist",
             "postal_code_label": "Postcode",
             "postal_code_required_error": "Postcode is vereist",
             "save_in_addressbook": "Bewaar dit adres in mijn adresboek.",
+            "save_to_company_addressbook": "Opslaan in bedrijfsadresboek.",
+            "search_addresses": "Naar adressen zoeken",
             "select_country_action": "Selecteer een land",
             "select_state_action": "Selecteer een staat",
             "state_label": "Staat/provincie",
@@ -45,9 +53,11 @@
         "billing": {
             "billing_address_heading": "Factuuradres",
             "billing_heading": "Facturering",
+            "no_billing_addresses_warning": "Sorry, je hebt geen factuuradres beschikbaar. Ga naar je adresboek om een adres aan te maken of neem contact op met je sitebeheerder.",
             "save_billing_address_error": "Er is een fout opgetreden bij het opslaan van het factuuradres in uw prijsopgave. Probeer het opnieuw.",
             "billing_address_amazonpay": "Beheerd door Amazon Pay",
-            "use_shipping_address_label": "Mijn factuuradres is hetzelfde als mijn verzendadres."
+            "use_shipping_address_label": "Mijn factuuradres is hetzelfde als mijn verzendadres.",
+            "same_as_shipping_label": "Zelfde als verzendadres"
         },
         "cart": {
             "billed_amount_text": "*Er wordt {total} ({code}) in rekening gebracht en gefactureerd voor deze bestelling.",
@@ -57,6 +67,8 @@
             "discount_text": "Korting",
             "downloads_action": "Ga naar Downloads",
             "edit_cart_action": "Winkelmandje bewerken",
+            "back_to_invoices": "Terug naar facturen",
+            "go_to_cart_action": "Winkelmandje",
             "edit_multi_shipping_cart_message": "Nieuwe artikelen worden standaard toegewezen aan verzendbestemming 1. Wijs ze opnieuw toe als je ze naar andere bestemmingen wilt laten verzenden.",
             "estimated_total_text": "Geschat totaal",
             "free_text": "Gratis",
@@ -65,15 +77,25 @@
             "item": "Artikel",
             "items": "artikelen",
             "item_count_text": "{count, plural, one{1 item} other{# items} }",
+            "backorder_count_text": "{count} worden nabesteld",
+            "backorder_quantities_changed_heading": "De nabestelhoeveelheden voor onderstaande artikelen zijn gewijzigd:",
+            "cart_stock_modal_destination": "Bestemming # {consignmentNumber}",
+            "ready_to_ship_count_text": "{count} klaar om te verzenden",
+            "bundled_item_label": "Bundel:",
+            "backorder_details": "Details van nabestellingen",
             "print_action": "Afdrukken",
+            "qty_label": "Aantal: {quantity}",
             "remaining_text": "resterend",
             "remove_action": "verwijderen",
             "return_to_checkout": "TERUG NAAR AFREKENEN",
             "see_all_action": "Alles weergeven",
             "see_less_action": "Minder weergeven",
+            "show_order_summary_action": "Overzicht bestelling weergeven",
+            "hide_order_summary_action": "Verberg Besteloverzicht",
             "shipping_text": "Verzending",
             "gift_wrapping_text": "Cadeauverpakking",
             "show_details_action": "Details weergeven",
+            "hide_details_action": "Details verbergen",
             "store_credit_text": "Winkeltegoed",
             "subtotal_text": "Subtotaal",
             "taxes_text": "Belastingen",
@@ -88,6 +110,7 @@
             "cancel_action": "Annuleren",
             "close_action": "Sluiten",
             "continue_action": "Doorgaan",
+            "continue_to_payment_action": "Doorgaan naar betaling",
             "change_action": "Wijzigen",
             "proceed_action": "Doorgaan",
             "edit_action": "Bewerken",
@@ -101,6 +124,7 @@
             "error_code": "Foutcode:",
             "request_id": "Aanvraag-ID:",
             "optional_text": "(Optioneel)",
+            "please_select_text": "Selecteer",
             "unavailable_error": "Afrekenen is tijdelijk niet mogelijk. Probeer het later opnieuw.",
             "unavailable_heading": "Afrekenen is tijdelijk niet beschikbaar",
             "unstable_network_error": "Het lijkt erop dat de server er te lang over doet om te reageren, dit kan worden veroorzaakt door een slechte verbinding of een fout met onze servers. Probeer het later opnieuw.",
@@ -113,8 +137,11 @@
         "customer": {
             "continue_as_guest_action": "Doorgaan als gast",
             "continue_as_stripe_customer_action": "Doorgaan met link",
+            "continue_checkout_as_guest_action": "Doorgaan met afrekenen als gast",
             "create_account_action": "Account aanmaken",
+            "create_account_instead_action": "Maak in plaats daarvan een account aan",
             "continue": "Doorgaan",
+            "continue_to_shipping_action": "Doorgaan naar verzending",
             "set_password_action": "Wachtwoord opslaan",
             "required_error": "{label} is vereist",
             "min_error": "{label} moet groter zijn dan {min}",
@@ -158,6 +185,7 @@
             "reset_password_before_login_error": "Inloggen is momenteel niet beschikbaar. U ontvangt binnen 5 minuten een e-mail met instructies om uw wachtwoord opnieuw in te stellen. Als u dit e-mailbericht niet ontvangt, kijk dan in uw map met ongewenste berichten of neem voor hulp contact met ons op.",
             "returning_customer_text": "Terugkerende klant",
             "sign_in_action": "Inloggen",
+            "sign_in_action_v2": "Inloggen",
             "sign_in_error": "Het e-mailadres of wachtwoord dat u hebt ingevoerd, is niet geldig.",
             "sign_in_throttled_error": "Vanwege te veel inlogpogingen moet u 10 seconden wachten voordat u opnieuw probeert in te loggen.",
             "sign_out_action": "Uitloggen",
@@ -193,7 +221,6 @@
             "amazon_continue_action": "Doorgaan met Amazon",
             "amazonpay_continue_action": "Doorgaan met Amazon Pay",
             "amazon_name_text": "Amazon Pay",
-            "barclaycard_continue_action": "Doorgaan",
             "bluesnap_v2_continue_action": "Doorgaan",
             "bluesnap_direct_account_type_select": {
                 "label": "Selecteer een type rekening",
@@ -263,6 +290,7 @@
             "clearpay_name_text": "Clearpay",
             "credit_card_text": "Creditcard",
             "credit_card_customer_code_label": "Klantcode",
+            "credit_card_cvv_help_action": "Wat is een CVV?",
             "credit_card_cvv_help_text": "Bij VISA en Mastercard is de CVV een driecijferige code op de achterkant van de kaart. Bij American Express is dit de viercijferige code op de voorkant van de kaart. De CVV is een beveiligingsmaatregel om te controleren of u in het bezit bent van de kaart.",
             "credit_card_cvv_invalid_error": "CVV moet geldig zijn",
             "credit_card_cvv_label": "CVV",
@@ -281,6 +309,9 @@
             "credit_card_number_required_error": "Creditcardnummer is vereist",
             "credit_card_number_mismatch_error": "Het ingevoerde kaartnummer komt niet overeen met de kaart die in uw account is opgeslagen",
             "credit_debit_card_text": "Creditcard/betaalpas",
+            "open_banking_display_name_text": "Open Banking",
+            "invoices_display_name_text": "Betalen per factuur",
+            "invoice_payment_comment_label": "Opmerking bij betaling",
             "payment_methods_text": "Betaalmethoden",
             "redeemable_payments_text": "Inwisselbare betalingen",
             "instrument_storage_options_text": "Betalingsopslagopties",
@@ -289,7 +320,6 @@
             "humm_not_processable_error": "Humm kan uw betaling voor deze bestelling niet verwerken. Selecteer een andere betaalmethode.",
             "klarna_continue_action": "Doorgaan met Klarna",
             "klarna_name_text": "Klarna",
-            "masterpass_name_text": "Masterpass",
             "mollie_unsupported_method_error": "Deze betaalmethode kan niet worden gebruikt voor de aankoop van digitale producten. Neem contact op met de klantenservice of probeer het opnieuw.",
             "opy_continue_action": "Doorgaan met {methodName}",
             "opy_widget_slogan": "Nu kopen, slimmer betalen.",
@@ -307,6 +337,9 @@
             "payment_method_invalid_error": "Er is een probleem opgetreden bij het verwerken van uw betaling. Neem voor hulp contact met ons op of kies een andere betaalmethode.",
             "payment_method_unavailable_error": "Deze betalingsprovider is tijdelijk niet beschikbaar. Probeer het later opnieuw.",
             "payment_not_required_text": "Voor deze bestelling is geen betaling vereist.",
+            "payment_methods_unavailable_error": "We kunnen op dit moment geen betaalmethoden laden. Probeer het later opnieuw of neem contact op met de winkel voor hulp.",
+            "payment_methods_reloaded_method_unavailable_text": "Betaalopties opnieuw geladen voor {countryName} als het facturatieland. {methodName} is niet beschikbaar in dit land, kies een andere betaalmethode.",
+            "payment_methods_updated_for_country_text": "Betaalopties bijgewerkt voor {countryName} als facturatieland.",
             "paypal_complete_action": "Bestelling voltooien",
             "paypal_continue_action": "Doorgaan met PayPal",
             "paypal_pay_later_complete_action": "Bestelling voltooien",
@@ -318,6 +351,7 @@
             "paypal_name_text": "PayPal",
             "paypal_credit_name_text": "Later betalen",
             "place_order_action": "Bestelling plaatsen",
+            "place_order_action_v2": "Bestelling plaatsen",
             "place_order_error": "Er is een fout opgetreden bij het plaatsen van uw bestelling. Neem contact met ons op.",
             "place_order_error_heading": "Bestelling kon niet worden geplaatst",
             "postal_code_label": "Postcode",
@@ -342,6 +376,7 @@
             "instrument_manage_delete_server_error": "Er is een fout opgetreden bij het verwijderen van die opgeslagen betaalmethode. Probeer het opnieuw.",
             "instrument_manage_delete_auth_error": "Er is een probleem opgetreden bij het autoriseren van uw verzoek. Probeer opnieuw in te loggen",
             "instrument_manage_delete_client_error": "Er is een fout opgetreden bij het verwijderen van de opgeslagen betaalmethode: betaalmethode bestaat niet meer of kan niet worden verwijderd.",
+            "auto_vaulting_disclaimer": "Door je kaartgegevens op te geven en deze bestelling te plaatsen, ga je ermee akkoord dat er in de toekomst betalingen van je kaart kunnen worden afgeschreven in overeenstemming met de voorwaarden van de verkoper.",
             "instrument_save_payment_method_label": "Bewaar deze kaart voor toekomstige transacties",
             "instrument_save_as_default_payment_method_label": "Gebruik deze kaart als de standaardbetaalmethode voor toekomstige transacties",
             "account_instrument_add_action": "Een ander account gebruiken",
@@ -380,10 +415,13 @@
             "phone_number_label": "Telefoonnummer",
             "errors": {
                 "account_number_required_error": "Rekeningnummer is vereist",
+                "field_required_error": "{label} is vereist",
                 "routing_number_required_error": "Routeringsnummer is vereist",
                 "phone_number_required_error": "Telefoonnummer is vereist",
                 "business_name_required_error": "Bedrijfsnaam is vereist",
                 "only_numbers_error": "{label} mag alleen cijfers bevatten",
+                "disabled_PO_number_credit": "Deze aankoop overschrijdt je beschikbare tegoed. Kies een andere betaalmethode.",
+                "disabled_PO_number_currency_mismatch": "Gebruik {currency} om de {name} te gebruiken.",
                 "additional_action_required": "Ga verder met aanvullende acties.",
                 "authorization_expired": "De autorisatie voor deze transactie is verlopen.",
                 "authorization_revoked": "De autorisatie voor deze transactie is ingetrokken.",
@@ -431,6 +469,7 @@
                 "not_found": "Er is een probleem opgetreden bij het verwerken van uw transactie. Probeer het later opnieuw.",
                 "payment_config_error": "Er is iets misgegaan op de server. Probeer het later opnieuw.",
                 "payment_config_not_found": "Er is iets misgegaan op de server. Probeer het later opnieuw.",
+                "payment_method_no_longer_available": "Deze betaalmethode is niet meer beschikbaar. Kies een andere betaalmethode.",
                 "pending_review": "Uw transactie is geautoriseerd, maar wordt vastgehouden ter beoordeling door de verkoper.",
                 "pickup_card": "Uw kaart kan niet worden gebruikt voor deze betaling. Neem contact op met uw kaartuitgever of gebruik een andere kaart.",
                 "processing_error": "Er is een probleem opgetreden bij het verwerken van uw transactie. Probeer het later opnieuw.",
@@ -445,6 +484,7 @@
                 "three_d_secure_declined": "Er is een probleem opgetreden met uw betaling, controleer uw betalingsgegevens of neem contact op met uw creditcarduitgever.",
                 "three_d_secure_failed": "De betaling is mislukt. Probeer het opnieuw of gebruik een andere betaalmethode.",
                 "three_d_secure_required": "Verdere authenticatie is vereist om uw betaling te verwerken. Neem contact met ons op.",
+                "three_d_secure_payment_failed": "De creditcardgegevens zijn ongeldig of de 3D Secure-verificatie is mislukt. Probeer een andere kaart of probeer de betaling later opnieuw.",
                 "token_error": "Er is een probleem opgetreden bij het verwerken van uw transactie. Probeer het later opnieuw.",
                 "transaction_declined": "Uw betaling is geweigerd. Probeer het opnieuw.",
                 "transaction_rejected": "Betaling is geweigerd. Probeer het opnieuw.",
@@ -454,7 +494,8 @@
                 "unsupported_request": "Kan de betaling niet verwerken omdat er ongeldige gegevens zijn opgegeven bij de transactie.",
                 "user_authorization_error": "Er is een fout opgetreden bij het verwerken van uw betaling. Neem contact met ons op.",
                 "vaulting_service_unavailable": "Service voor beveiligde opslag is momenteel niet beschikbaar.",
-                "voided_transaction": "Uw betaling kan niet worden verwerkt, omdat de transactie al is geannuleerd. Probeer het opnieuw of neem contact met ons op."
+                "voided_transaction": "Uw betaling kan niet worden verwerkt, omdat de transactie al is geannuleerd. Probeer het opnieuw of neem contact met ons op.",
+                "bank_declined_authentication": "Your bank declined authentication, please use a different card."
             },
             "ratepay": {
                 "payment_method_title": "Betalen op rekening",
@@ -471,6 +512,7 @@
             }
         },
         "redeemable": {
+            "auto_promotion": "Automatische korting",
             "applied_text": "Toegepast",
             "apply_action": "Toepassen",
             "apply_store_credit_after_action": "winkeltegoed om te bestellen",
@@ -481,11 +523,16 @@
             "coupon_location_error": "Uw verzendadres voldoet niet aan de locatievereisten voor de couponcode die u heeft ingevoerd.",
             "coupon_min_order_total": "Uw bestelling voldoet niet aan het minimale totaalbedrag voor deze couponcode.",
             "coupon_text": "Coupon",
+            "coupon_placeholder": "Voer hier je code in",
+            "discounts_text": "Kortingen",
             "gift_certificate_remaining_text": "resterend",
             "gift_certificate_text": "Cadeaubon",
+            "manual_discount": "Handmatige korting",
+            "maximum_discount_applied_text": "Maximaal toegepaste korting",
             "remove_action": "Verwijderen",
             "store_credit_available_text": "Je account beschikt momenteel over een totaal winkeltegoed van {storeCredit}",
-            "toggle_action": "Coupon/cadeaubon"
+            "toggle_action": "Coupon/cadeaubon",
+            "total_savings_text": "Je hebt in totaal <span class=\"total-savings-highlight\">{totalDiscount}</span> bespaard!"
         },
         "remote": {
             "browser_unsupported": "Voor de geselecteerde betaalmethode is een andere webbrowser vereist. Kies een andere betaalmethode.",
@@ -515,6 +562,7 @@
             "save_shipping_address_error": "Er is een fout opgetreden bij het opslaan van het verzendadres in uw prijsopgave. Probeer het opnieuw.",
             "save_shipping_option_error": "Er is een fout opgetreden bij het opslaan van de verzendofferte bij uw bestelling. Probeer het opnieuw.",
             "select_shipping_address_text": "Selecteer een verzendadres om verzendoffertes te zien",
+            "no_shipping_addresses_warning": "Sorry, je hebt geen verzendadres om uit te kiezen. Ga naar je adresboek om een adres aan te maken of neem contact op met je sitebeheerder.",
             "shipping_address_heading": "Verzendadres",
             "multishipping_consignment_index_heading": "Bestemming # {consignmentNumber}",
             "multishipping_incomplete_consignment_error": "Voltooi het adres, de artikeltoewijzing en de methodeselectie voor Bestemming {consignmentNumber}.",
@@ -543,6 +591,10 @@
             "multishipping_left_to_allocate_items_table_item": "Artikel",
             "multishipping_left_to_allocate_items_table_left_to_allocate": "Nog toe te wijzen",
             "multishipping_left_to_allocate_items_table_quantity": "Aantal",
+            "multishipping_backordered_quantity": "({count} worden nabesteld)",
+            "no_countries_available_heading": "We hebben problemen met het laden van je verzendland",
+            "no_countries_available_message": "Vernieuw de pagina of probeer het over enkele ogenblikken opnieuw. Als het probleem zich blijft voordoen, neem dan contact op met onze klantenservice. Dan helpen we je om je bestelling te voltooien.",
+            "multishipping_item_split_tooltip_action": "Waarom zijn deze artikelen gesplitst?",
             "multishipping_item_split_tooltip_message": "Deze artikelaantallen zijn opgesplitst in een aparte rij vanwege een promotie op basis van aantal of een aangepaste prijs.",
             "ship_to_multi": "Verzenden naar meerdere adressen",
             "ship_to_single": "Verzenden naar een enkel adres",
@@ -593,7 +645,13 @@
         "order_confirmation": {
             "mandate": {
                 "adyenv3": {
-                    "boletobancario": "Boleto Bancário-ticket"
+                    "boletobancario": "Boleto Bancário-ticket",
+                    "multibanco": {
+                        "reference": "Betalingsreferentie",
+                        "entity": "Entiteitsnummer",
+                        "expires_at": "Vervaldatum"
+                    },
+                    "oxxo": "OXXO-ticket"
                 },
                 "bluesnapdirect": {
                     "sepa_direct_debit": "Referentie SEPA-machtiging tot automatische incasso: {mandate}"
@@ -632,7 +690,19 @@
             "thank_you_customer_heading": "Bedankt {name}!",
             "thank_you_heading": "Bedankt!",
             "continue_shopping": "Doorgaan met winkelen »",
-            "order_status_update_facebook_messenger_heading": "Ontvang directe updates over uw bestelling in Messenger"
+            "order_status_update_facebook_messenger_heading": "Ontvang directe updates over uw bestelling in Messenger",
+            "expired_token": {
+                "heading": "Link verlopen",
+                "description": "Om veiligheidsredenen is deze link verlopen.",
+                "resend_action": "Beveiligde link opnieuw verzenden",
+                "sending": "Verzenden...",
+                "resend_success": "Er is een nieuwe link naar je e-mailadres gestuurd.",
+                "resend_error": "Het opnieuw verzenden van de link is mislukt. Probeer het later opnieuw."
+            },
+            "rate_limited": {
+                "heading": "Te veel verzoeken",
+                "message": "Je hebt te veel pogingen gedaan. Wacht een paar minuten en probeer het opnieuw."
+            }
         }
     }
 }

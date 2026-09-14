@@ -46,11 +46,12 @@ describe('When using Affirm Payment Method', () => {
         defaultProps = {
             method: {
                 id: 'affirm',
-                method: 'barclaycard',
+                method: 'affirm',
                 supportedCards: [],
                 config: {},
                 type: 'card',
                 gateway: 'affirm',
+                skipRedirectConfirmationAlert: false,
             },
             checkoutService,
             checkoutState,

@@ -1,17 +1,14 @@
 import { type FormField as FormFieldType } from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
-import { type FieldProps } from 'formik';
 import { includes } from 'lodash';
-import React, { type FunctionComponent, memo, type ReactNode, useCallback, useMemo } from 'react';
+import React, { type FunctionComponent, memo, type ReactNode, useMemo } from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 
-import { FormField } from '../FormField';
 import { Label } from '../Label';
 
-import CheckboxGroupFormField from './CheckboxGroupFormField';
+import { DynamicFormFieldSelector } from './DynamicFormFieldSelector';
 import DynamicFormFieldType from './DynamicFormFieldType';
-import DynamicInput from './DynamicInput';
 
 export interface DynamicFormFieldOption {
     code: string;
@@ -27,7 +24,8 @@ export interface DynamicFormFieldProps {
     placeholder?: string;
     label?: ReactNode;
     isFloatingLabelEnabled?: boolean;
-    themeV2?: boolean;
+    isNewPhoneValidationExperimentEnabled?: boolean;
+    selectedCountry?: string;
     onChange?(value: string | string[]): void;
 }
 
@@ -52,7 +50,8 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
     label,
     extraClass,
     isFloatingLabelEnabled,
-    themeV2 = false,
+    selectedCountry,
+    isNewPhoneValidationExperimentEnabled = false,
 }) => {
     const fieldInputId = inputId || name;
     const fieldName = parentFieldName ? `${parentFieldName}.${name}` : name;
@@ -62,14 +61,10 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
                 !fieldType),
     );
     const labelComponent = useMemo(() => {
-        let labelClassName = '';
+        let labelClassName = 'body-medium';
 
-        if (themeV2) {
-            if (isFloatingLabelSupportedFieldType) {
-                labelClassName = 'floating-form-field-label';
-            } else {
-                labelClassName = 'body-medium';
-            }
+        if (isFloatingLabelSupportedFieldType) {
+            labelClassName = 'floating-form-field-label';
         }
 
         return (
@@ -90,7 +85,7 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
                 )}
             </Label>
         );
-    }, [themeV2, fieldInputId, isFloatingLabelSupportedFieldType, label, fieldLabel, required]);
+    }, [fieldInputId, isFloatingLabelSupportedFieldType, label, fieldLabel, required]);
 
     const dynamicFormFieldType = useMemo((): DynamicFormFieldType => {
         if (fieldType === 'text') {
@@ -108,38 +103,6 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
         return fieldType as DynamicFormFieldType;
     }, [fieldType, type, secret, name]);
 
-    const renderInput = useCallback(
-        ({ field }: FieldProps<string>) => (
-            <DynamicInput
-                {...field}
-                aria-labelledby={`${fieldInputId}-label ${fieldInputId}-field-error-message`}
-                autoComplete={autocomplete}
-                fieldType={dynamicFormFieldType}
-                id={fieldInputId}
-                isFloatingLabelEnabled={isFloatingLabelSupportedFieldType}
-                max={max}
-                maxLength={maxLength || undefined}
-                min={min}
-                options={options && options.items}
-                placeholder={placeholder || (options && options.helperLabel)}
-                rows={options?.rows}
-                themeV2={themeV2}
-            />
-        ),
-        [
-            fieldInputId,
-            autocomplete,
-            dynamicFormFieldType,
-            isFloatingLabelSupportedFieldType,
-            max,
-            maxLength,
-            min,
-            options,
-            placeholder,
-            themeV2,
-        ],
-    );
-
     return (
         <div
             className={classNames(
@@ -148,25 +111,23 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
                 extraClass,
             )}
         >
-            {fieldType === DynamicFormFieldType.CHECKBOX ? (
-                <CheckboxGroupFormField
-                    id={fieldInputId}
-                    label={labelComponent}
-                    name={fieldName}
-                    onChange={onChange}
-                    options={(options && options.items) || []}
-                    themeV2={themeV2}
-                />
-            ) : (
-                <FormField
-                    id={fieldInputId}
-                    input={renderInput}
-                    isFloatingLabelEnabled={isFloatingLabelSupportedFieldType}
-                    label={labelComponent}
-                    name={fieldName}
-                    onChange={onChange}
-                />
-            )}
+            <DynamicFormFieldSelector
+                autocomplete={autocomplete}
+                dynamicFormFieldType={dynamicFormFieldType}
+                fieldType={fieldType}
+                id={fieldInputId}
+                isFloatingLabelEnabled={isFloatingLabelSupportedFieldType}
+                isNewPhoneValidationExperimentEnabled={isNewPhoneValidationExperimentEnabled}
+                label={labelComponent}
+                max={max}
+                maxLength={maxLength}
+                min={min}
+                name={fieldName}
+                onChange={onChange}
+                options={options}
+                placeholder={placeholder}
+                selectedCountry={selectedCountry}
+            />
         </div>
     );
 };

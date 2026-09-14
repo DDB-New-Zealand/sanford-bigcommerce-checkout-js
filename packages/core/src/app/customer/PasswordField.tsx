@@ -1,21 +1,23 @@
 import { type FieldProps } from 'formik';
 import React, { type FunctionComponent, memo, useCallback, useMemo } from 'react';
 
-import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
-import { FormField, TextInput } from '../ui/form';
-import Label from '../ui/form/Label';
-import { IconEye, IconEyeSlash } from '../ui/icon';
-import { Toggle } from '../ui/toggle';
+import {
+    FormField,
+    IconEye,
+    IconEyeSlash,
+    Label,
+    TextInput,
+    Toggle,
+} from '@bigcommerce/checkout/ui';
 
 interface WithFloatingLabel {
     isFloatingLabelEnabled?: boolean;
 }
 
-const PasswordField: FunctionComponent<WithFloatingLabel> = ({ isFloatingLabelEnabled = false }) => {
-    const { themeV2 } = useThemeContext();
-
+const PasswordField: FunctionComponent<WithFloatingLabel> = ({
+    isFloatingLabelEnabled = false,
+}) => {
     const renderInput = useCallback(
         (props: FieldProps) => (
             <Toggle openByDefault={false}>
@@ -26,12 +28,11 @@ const PasswordField: FunctionComponent<WithFloatingLabel> = ({ isFloatingLabelEn
                             additionalClassName="form-input--withIcon"
                             id={props.field.name}
                             isFloatingLabelEnabled={isFloatingLabelEnabled}
-                            themeV2={themeV2}
                             type={isOpen ? 'text' : 'password'}
                         />
                         {isFloatingLabelEnabled && (
                             <Label
-                                additionalClassName={themeV2 ? 'floating-form-field-label' : ''}
+                                additionalClassName="floating-form-field-label"
                                 htmlFor={props.field.name}
                                 id={`${props.field.name}-label`}
                                 isFloatingLabelEnabled={true}
@@ -55,7 +56,14 @@ const PasswordField: FunctionComponent<WithFloatingLabel> = ({ isFloatingLabelEn
 
     const labelContent = useMemo(() => <TranslatedString id="customer.password_label" />, []);
 
-    return <FormField input={renderInput} isFloatingLabelEnabled={isFloatingLabelEnabled} labelContent={isFloatingLabelEnabled ? null : labelContent} name="password" />;
+    return (
+        <FormField
+            input={renderInput}
+            isFloatingLabelEnabled={isFloatingLabelEnabled}
+            labelContent={isFloatingLabelEnabled ? null : labelContent}
+            name="password"
+        />
+    );
 };
 
 export default memo(PasswordField);

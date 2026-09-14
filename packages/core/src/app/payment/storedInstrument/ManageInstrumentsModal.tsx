@@ -4,10 +4,9 @@ import React, { Component, type ReactNode } from 'react';
 
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
+import { Button, ButtonSize, ButtonVariant, Modal, ModalHeader } from '@bigcommerce/checkout/ui';
 
 import { withCheckout } from '../../checkout';
-import { Button, ButtonSize, ButtonVariant } from '../../ui/button';
-import { Modal, ModalHeader } from '../../ui/modal';
 
 import isAccountInstrument from './isAccountInstrument';
 import isBankAccountInstrument from './isBankAccountInstrument';
@@ -76,9 +75,11 @@ class ManageInstrumentsModal extends Component<
 
         if (isConfirmingDelete) {
             return (
-                <p>
-                    <TranslatedString id="payment.instrument_manage_modal_confirmation_label" />
-                </p>
+                <div data-test="manage-instrument-confirmation-view">
+                    <p>
+                        <TranslatedString id="payment.instrument_manage_modal_confirmation_label" />
+                    </p>
+                </div>
             );
         }
 
@@ -115,18 +116,18 @@ class ManageInstrumentsModal extends Component<
             return (
                 <>
                     <Button
-                        data-test="manage-instrument-cancel-button"
                         onClick={this.handleCancel}
                         size={ButtonSize.Small}
+                        testId="manage-instrument-cancel-button"
                     >
                         <TranslatedString id="common.cancel_action" />
                     </Button>
 
                     <Button
-                        data-test="manage-instrument-confirm-button"
                         disabled={isDeletingInstrument || isLoadingInstruments}
                         onClick={this.handleConfirmDelete}
                         size={ButtonSize.Small}
+                        testId="manage-instrument-confirm-button"
                         variant={ButtonVariant.Primary}
                     >
                         <TranslatedString id="payment.instrument_manage_modal_confirmation_action" />
@@ -137,9 +138,9 @@ class ManageInstrumentsModal extends Component<
 
         return (
             <Button
-                data-test="manage-instrument-close-button"
                 onClick={onRequestClose}
                 size={ButtonSize.Small}
+                testId="manage-instrument-close-button"
             >
                 <TranslatedString id="common.close_action" />
             </Button>

@@ -9,12 +9,13 @@ import {
     createBigCommercePaymentsAlternativeMethodsPaymentStrategy,
     createBigCommercePaymentsPayLaterPaymentStrategy,
     createBigCommercePaymentsVenmoPaymentStrategy,
-    createBigCommercePaymentsKlarnaPaymentStrategy,
+    createBigCommercePaymentsRedirectAlternativeMethodsPaymentStrategy,
 } from '@bigcommerce/checkout-sdk/integrations/bigcommerce-payments';
 import { render } from '@testing-library/react';
 import { EventEmitter } from 'events';
 import React from 'react';
 
+import { InstrumentDeclinedError } from '@bigcommerce/checkout/error-handling-utils';
 import { type PaymentFormService } from '@bigcommerce/checkout/payment-integration-api';
 import { getPaymentFormServiceMock } from '@bigcommerce/checkout/test-mocks';
 
@@ -82,7 +83,7 @@ describe('BigCommercePaymentsPaymentMethodComponent', () => {
                 createBigCommercePaymentsAlternativeMethodsPaymentStrategy,
                 createBigCommercePaymentsPayLaterPaymentStrategy,
                 createBigCommercePaymentsVenmoPaymentStrategy,
-                createBigCommercePaymentsKlarnaPaymentStrategy,
+                createBigCommercePaymentsRedirectAlternativeMethodsPaymentStrategy,
             ],
             bigcommerce_payments: {
                 container: '#checkout-payment-continue',
@@ -125,7 +126,7 @@ describe('BigCommercePaymentsPaymentMethodComponent', () => {
                 createBigCommercePaymentsAlternativeMethodsPaymentStrategy,
                 createBigCommercePaymentsPayLaterPaymentStrategy,
                 createBigCommercePaymentsVenmoPaymentStrategy,
-                createBigCommercePaymentsKlarnaPaymentStrategy,
+                createBigCommercePaymentsRedirectAlternativeMethodsPaymentStrategy,
             ],
             bigcommerce_payments_apms: {
                 container: '#checkout-payment-continue',
@@ -346,9 +347,7 @@ describe('BigCommercePaymentsPaymentMethodComponent', () => {
 
         eventEmitter.emit('onError');
 
-        expect(onUnhandledErrorMock).toHaveBeenCalledWith(
-            new Error(props.language.translate('payment.errors.instrument_declined')),
-        );
+        expect(onUnhandledErrorMock).toHaveBeenCalledWith(new InstrumentDeclinedError());
     });
 
     it('passed form validation by calling onValidate callback', async () => {

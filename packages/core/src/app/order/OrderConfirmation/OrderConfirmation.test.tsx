@@ -5,6 +5,7 @@ import {
     createEmbeddedCheckoutMessenger,
     type EmbeddedCheckoutMessenger,
 } from '@bigcommerce/checkout-sdk';
+import { createRequestSender } from '@bigcommerce/request-sender';
 import { faker } from '@faker-js/faker';
 import userEvent from '@testing-library/user-event';
 import React, { type FunctionComponent } from 'react';
@@ -20,11 +21,9 @@ import {
     LocaleProvider,
     ThemeProvider,
 } from '@bigcommerce/checkout/contexts';
-import {
-    createLocaleContext,
-    getLanguageService,
-} from '@bigcommerce/checkout/locale';
+import { createLocaleContext, getLanguageService } from '@bigcommerce/checkout/locale';
 import { renderWithoutWrapper as render, screen, waitFor } from '@bigcommerce/checkout/test-utils';
+import { CannotCreatePersonalAccountSessionStorage } from '@bigcommerce/checkout/utility';
 
 import { createErrorLogger } from '../../common/error';
 import { getStoreConfig } from '../../config/config.mock';
@@ -32,7 +31,17 @@ import { createEmbeddedCheckoutStylesheet } from '../../embeddedCheckout';
 import { type CreatedCustomer } from '../../guestSignup';
 import { getGatewayOrderPayment, getOrder } from '../orders.mock';
 
-import { OrderConfirmation, type OrderConfirmationProps } from './OrderConfirmation';
+import {
+    OrderConfirmation,
+    type OrderConfirmationProps,
+    OrderPermalinkStatus,
+} from './OrderConfirmation';
+
+jest.mock('@bigcommerce/request-sender', () => ({
+    createRequestSender: jest.fn(() => ({
+        post: jest.fn(() => Promise.resolve()),
+    })),
+}));
 
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).*$/;
 
@@ -45,7 +54,7 @@ const generateValidPassword = () => {
     } while (!passwordRegex.test(password));
 
     return password;
-}
+};
 
 describe('OrderConfirmation', () => {
     let checkoutService: CheckoutService;
@@ -67,7 +76,7 @@ describe('OrderConfirmation', () => {
         embeddedMessengerMock = createEmbeddedCheckoutMessenger({
             parentOrigin: getStoreConfig().links.siteLink,
         });
-        localeContext = createLocaleContext(getStoreConfig())
+        localeContext = createLocaleContext(getStoreConfig());
 
         jest.spyOn(checkoutService, 'loadOrder').mockResolvedValue(checkoutState);
 
@@ -154,11 +163,19 @@ describe('OrderConfirmation', () => {
 
         // eslint-disable-next-line testing-library/no-node-access, testing-library/no-container
         expect(container.getElementsByClassName('orderConfirmation')).toHaveLength(1);
-        expect(screen.getByText(localeContext.language.translate('order_confirmation.thank_you_customer_heading', {
-            name: order.billingAddress.firstName,
-        }))).toBeInTheDocument();
-        expect(screen.getByText(localeContext.language.translate('customer.create_account_text'))).toBeInTheDocument();
-        expect(screen.getByTestId('payment-instructions').innerHTML).toBe(getGatewayOrderPayment().detail.instructions);
+        expect(
+            screen.getByText(
+                localeContext.language.translate('order_confirmation.thank_you_customer_heading', {
+                    name: order.billingAddress.firstName,
+                }),
+            ),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(localeContext.language.translate('customer.create_account_text')),
+        ).toBeInTheDocument();
+        expect(screen.getByTestId('payment-instructions').innerHTML).toBe(
+            getGatewayOrderPayment().detail.instructions,
+        );
     });
 
     it('renders create account form, fills in the form and submit data', async () => {
@@ -166,19 +183,30 @@ describe('OrderConfirmation', () => {
 
         render(<ComponentTest {...defaultProps} />);
 
-        expect(screen.getByText(localeContext.language.translate('customer.create_account_text'))).toBeInTheDocument();
+        expect(
+            screen.getByText(localeContext.language.translate('customer.create_account_text')),
+        ).toBeInTheDocument();
 
-        const passwordField = screen.getByLabelText(localeContext.language.translate('customer.password_minimum_character_label'), { exact: false });
-        const confirmPasswordField = screen.getByLabelText(localeContext.language.translate('customer.password_confirmation_label'));
-        const submitButton = screen.getByText(localeContext.language.translate('customer.create_account_action'));
+        const passwordField = screen.getByLabelText(
+            localeContext.language.translate('customer.password_minimum_character_label'),
+            { exact: false },
+        );
+        const confirmPasswordField = screen.getByLabelText(
+            localeContext.language.translate('customer.password_confirmation_label'),
+        );
+        const submitButton = screen.getByText(
+            localeContext.language.translate('customer.create_account_action'),
+        );
 
         await userEvent.type(passwordField, password);
         await userEvent.type(confirmPasswordField, password);
         await userEvent.click(submitButton);
-        await waitFor(() => expect(defaultProps.createAccount).toHaveBeenCalledWith({
-            password,
-            confirmPassword: password,
-        }));
+        await waitFor(() =>
+            expect(defaultProps.createAccount).toHaveBeenCalledWith({
+                password,
+                confirmPassword: password,
+            }),
+        );
     });
 
     it('renders set password form, fills in the form and submit data', async () => {
@@ -191,34 +219,277 @@ describe('OrderConfirmation', () => {
 
         render(<ComponentTest {...defaultProps} />);
 
-        expect(screen.getByText(localeContext.language.translate('customer.set_password_text'))).toBeInTheDocument();
-        expect(screen.getByText(localeContext.language.translate('customer.account_created_text'))).toBeInTheDocument();
-        expect(screen.getByText(localeContext.language.translate('customer.set_password_action'))).toBeInTheDocument();
+        expect(
+            screen.getByText(localeContext.language.translate('customer.set_password_text')),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(localeContext.language.translate('customer.account_created_text')),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(localeContext.language.translate('customer.set_password_action')),
+        ).toBeInTheDocument();
 
-        const passwordField = screen.getByLabelText(localeContext.language.translate('customer.password_minimum_character_label'), { exact: false });
-        const confirmPasswordField = screen.getByLabelText(localeContext.language.translate('customer.password_confirmation_label'));
-        const submitButton = screen.getByText(localeContext.language.translate('customer.set_password_action'));
+        const passwordField = screen.getByLabelText(
+            localeContext.language.translate('customer.password_minimum_character_label'),
+            { exact: false },
+        );
+        const confirmPasswordField = screen.getByLabelText(
+            localeContext.language.translate('customer.password_confirmation_label'),
+        );
+        const submitButton = screen.getByText(
+            localeContext.language.translate('customer.set_password_action'),
+        );
 
         await userEvent.type(passwordField, password);
         await userEvent.type(confirmPasswordField, password);
         await userEvent.click(submitButton);
-        await waitFor(() => expect(defaultProps.createAccount).toHaveBeenCalledWith({
-            password,
-            confirmPassword: password,
-        }));
+        await waitFor(() =>
+            expect(defaultProps.createAccount).toHaveBeenCalledWith({
+                password,
+                confirmPassword: password,
+            }),
+        );
+    });
+
+    describe('when cannotCreatePersonalAccount is stored in session storage', () => {
+        beforeEach(() => {
+            CannotCreatePersonalAccountSessionStorage.setCannotCreatePersonalAccount(true);
+        });
+
+        afterEach(() => {
+            CannotCreatePersonalAccountSessionStorage.removeCannotCreatePersonalAccount();
+        });
+
+        it('removes the stored value after consuming it once', async () => {
+            render(<ComponentTest {...defaultProps} />);
+
+            await waitFor(() => {
+                expect(analyticsTracker.orderPurchased).toHaveBeenCalled();
+            });
+
+            expect(
+                sessionStorage.getItem(CannotCreatePersonalAccountSessionStorage.key),
+            ).toBeNull();
+            expect(
+                screen.queryByText(
+                    localeContext.language.translate('customer.create_account_text'),
+                ),
+            ).not.toBeInTheDocument();
+        });
+
+        it('does not render the create account form', async () => {
+            render(<ComponentTest {...defaultProps} />);
+
+            await waitFor(() => {
+                expect(analyticsTracker.orderPurchased).toHaveBeenCalled();
+            });
+
+            expect(
+                screen.getByText(
+                    localeContext.language.translate('order_confirmation.continue_shopping'),
+                ),
+            ).toBeInTheDocument();
+            expect(
+                screen.queryByText(
+                    localeContext.language.translate('customer.create_account_text'),
+                ),
+            ).not.toBeInTheDocument();
+            expect(
+                screen.queryByText(
+                    localeContext.language.translate('customer.create_account_action'),
+                ),
+            ).not.toBeInTheDocument();
+        });
+
+        it('does not render the set password form for an existing customer', async () => {
+            jest.spyOn(checkoutState.data, 'getOrder').mockReturnValue({
+                ...getOrder(),
+                customerId: 1,
+            });
+
+            render(<ComponentTest {...defaultProps} />);
+
+            await waitFor(() => {
+                expect(analyticsTracker.orderPurchased).toHaveBeenCalled();
+            });
+
+            expect(
+                screen.queryByText(localeContext.language.translate('customer.set_password_text')),
+            ).not.toBeInTheDocument();
+            expect(
+                screen.queryByText(
+                    localeContext.language.translate('customer.set_password_action'),
+                ),
+            ).not.toBeInTheDocument();
+        });
     });
 
     it('renders continue shopping button', async () => {
         const { container } = render(<ComponentTest {...defaultProps} />);
 
-        expect(screen.getByText(localeContext.language.translate('order_confirmation.continue_shopping'))).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                localeContext.language.translate('order_confirmation.continue_shopping'),
+            ),
+        ).toBeInTheDocument();
 
-        // eslint-disable-next-line testing-library/no-node-access, testing-library/no-container
-        const continueButtonContainer = container.getElementsByClassName('continueButtonContainer')[0];
+        const continueButtonContainer =
+            // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+            container.getElementsByClassName('continueButtonContainer')[0];
 
         // eslint-disable-next-line testing-library/no-node-access
         expect(continueButtonContainer.querySelector('form')).toHaveAttribute(
-            'action', getStoreConfig().links.siteLink,
+            'action',
+            getStoreConfig().links.siteLink,
         );
+    });
+
+    describe('when permalinkStatus is expired', () => {
+        it('renders the expired permalink view instead of order confirmation', () => {
+            render(
+                <ComponentTest {...defaultProps} permalinkStatus={OrderPermalinkStatus.Expired} />,
+            );
+
+            expect(
+                screen.getByText(
+                    localeContext.language.translate('order_confirmation.expired_token.heading'),
+                ),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText(
+                    localeContext.language.translate(
+                        'order_confirmation.expired_token.description',
+                    ),
+                ),
+            ).toBeInTheDocument();
+        });
+
+        it('does not call loadOrder', () => {
+            render(
+                <ComponentTest {...defaultProps} permalinkStatus={OrderPermalinkStatus.Expired} />,
+            );
+
+            expect(checkoutService.loadOrder).not.toHaveBeenCalled();
+        });
+
+        it('renders a resend button that calls the regenerate-permalink API', async () => {
+            const mockPost = jest.fn(() => Promise.resolve());
+            const requestSenderInstance = (createRequestSender as jest.Mock).mock.results[0].value;
+
+            requestSenderInstance.post = mockPost;
+
+            window.history.replaceState({}, '', '/checkout?orderToken=abc123');
+
+            render(
+                <ComponentTest {...defaultProps} permalinkStatus={OrderPermalinkStatus.Expired} />,
+            );
+
+            const resendButton = screen.getByRole('button', {
+                name: localeContext.language.translate(
+                    'order_confirmation.expired_token.resend_action',
+                ),
+            });
+
+            await userEvent.click(resendButton);
+
+            await waitFor(() => {
+                expect(mockPost).toHaveBeenCalledWith(
+                    '/api/storefront/orders/regenerate-permalink',
+                    {
+                        body: { orderToken: 'abc123' },
+                    },
+                );
+            });
+        });
+
+        it('shows success message after successful resend', async () => {
+            const mockPost = jest.fn(() => Promise.resolve());
+            const requestSenderInstance = (createRequestSender as jest.Mock).mock.results[0].value;
+
+            requestSenderInstance.post = mockPost;
+
+            window.history.replaceState({}, '', '/checkout?orderToken=abc123');
+
+            render(
+                <ComponentTest {...defaultProps} permalinkStatus={OrderPermalinkStatus.Expired} />,
+            );
+
+            const resendButton = screen.getByRole('button', {
+                name: localeContext.language.translate(
+                    'order_confirmation.expired_token.resend_action',
+                ),
+            });
+
+            await userEvent.click(resendButton);
+
+            await waitFor(() => {
+                expect(
+                    screen.getByText(
+                        localeContext.language.translate(
+                            'order_confirmation.expired_token.resend_success',
+                        ),
+                    ),
+                ).toBeInTheDocument();
+            });
+        });
+
+        it('shows error message when orderToken is missing', async () => {
+            window.history.replaceState({}, '', '/checkout');
+
+            render(
+                <ComponentTest {...defaultProps} permalinkStatus={OrderPermalinkStatus.Expired} />,
+            );
+
+            const resendButton = screen.getByRole('button', {
+                name: localeContext.language.translate(
+                    'order_confirmation.expired_token.resend_action',
+                ),
+            });
+
+            await userEvent.click(resendButton);
+
+            await waitFor(() => {
+                expect(
+                    screen.getByText(
+                        localeContext.language.translate(
+                            'order_confirmation.expired_token.resend_error',
+                        ),
+                    ),
+                ).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('when permalinkStatus is rate_limited', () => {
+        it('renders the rate limited view instead of order confirmation', () => {
+            render(
+                <ComponentTest
+                    {...defaultProps}
+                    permalinkStatus={OrderPermalinkStatus.RateLimited}
+                />,
+            );
+
+            expect(
+                screen.getByText(
+                    localeContext.language.translate('order_confirmation.rate_limited.heading'),
+                ),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText(
+                    localeContext.language.translate('order_confirmation.rate_limited.message'),
+                ),
+            ).toBeInTheDocument();
+        });
+
+        it('does not call loadOrder', () => {
+            render(
+                <ComponentTest
+                    {...defaultProps}
+                    permalinkStatus={OrderPermalinkStatus.RateLimited}
+                />,
+            );
+
+            expect(checkoutService.loadOrder).not.toHaveBeenCalled();
+        });
     });
 });

@@ -2,10 +2,10 @@ import { ExtensionRegion } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
 
 import { Extension } from '@bigcommerce/checkout/checkout-extension';
-import { CartSummarySkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
+import { useThemeContext } from '@bigcommerce/checkout/contexts';
+import { CartSummarySkeleton, LazyContainer, MobileView } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';
-import { MobileView } from '../../ui/responsive';
 
 const CartSummaryComponent = lazy(() =>
     retry(
@@ -27,15 +27,40 @@ const CartSummaryDrawer = lazy(() =>
     ),
 );
 
+const CartSummaryDrawerV2 = lazy(() =>
+    retry(
+        () =>
+            import(
+                /* webpackChunkName: "cart-summary-drawer-v2" */
+                '../../cart/CartSummaryDrawerV2'
+            ),
+    ),
+);
+
 export interface CartSummaryProps {
     isMultiShippingMode: boolean;
 }
 
 export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode }) => {
+    const { enhancedThemeV1 } = useThemeContext();
+
     return (
         <MobileView>
             {(matched) => {
                 if (matched) {
+                    if (enhancedThemeV1) {
+                        return (
+                            <LazyContainer loadingSkeleton={<></>}>
+                                <aside aria-label="Cart Summary" className="layout-cart">
+                                    <CartSummaryDrawerV2
+                                        isMultiShippingMode={isMultiShippingMode}
+                                    />
+                                    <Extension region={ExtensionRegion.SummaryAfter} />
+                                </aside>
+                            </LazyContainer>
+                        );
+                    }
+
                     return (
                         <LazyContainer loadingSkeleton={<></>}>
                             <Extension region={ExtensionRegion.SummaryAfter} />

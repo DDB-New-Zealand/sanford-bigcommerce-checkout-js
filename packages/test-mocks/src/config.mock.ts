@@ -16,6 +16,7 @@ export function getStoreConfig(): StoreConfig {
             checkoutUserExperienceSettings: {
                 walletButtonsOnTop: false,
                 floatingLabelEnabled: false,
+                enhancedCheckoutThemeV1: false,
             },
             enableOrderComments: true,
             enableTermsAndConditions: false,
@@ -69,7 +70,6 @@ export function getStoreConfig(): StoreConfig {
         paymentSettings: {
             bigpayBaseUrl: 'https://bigpay.integration.zone',
             clientSidePaymentProviders: [
-                'migs',
                 'eway',
                 'securenet',
                 'usaepay',

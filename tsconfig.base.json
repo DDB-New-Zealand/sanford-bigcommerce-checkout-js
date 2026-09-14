@@ -8,11 +8,13 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
+    "ignoreDeprecations": "6.0",
     "incremental": true,
     "jsx": "react",
     "lib": ["dom", "dom.iterable", "esnext", "scripthost"],
     "module": "esnext",
     "moduleResolution": "bundler",
+    "noUncheckedSideEffectImports": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
@@ -46,7 +48,6 @@
       "@bigcommerce/checkout/checkoutcom-integration": [
         "packages/checkoutcom-integration/src/index.ts"
       ],
-      "@bigcommerce/checkout/clearpay-integration": ["packages/clearpay-integration/src/index.ts"],
       "@bigcommerce/checkout/core": ["packages/core/src/app/index.ts"],
       "@bigcommerce/checkout/credit-card-integration": [
         "packages/credit-card-integration/src/index.ts"
@@ -68,6 +69,9 @@
       "@bigcommerce/checkout/instrument-utils": ["packages/instrument-utils/src/index.ts"],
       "@bigcommerce/checkout/klarna-integration": ["packages/klarna-integration/src/index.ts"],
       "@bigcommerce/checkout/legacy-hoc": ["packages/legacy-hoc/src/index.ts"],
+      "@bigcommerce/checkout/cheque-payment-integration": [
+        "packages/cheque-payment-integration/src/index.ts"
+      ],
       "@bigcommerce/checkout/locale": ["packages/locale/src/index.ts"],
       "@bigcommerce/checkout/mollie-integration": ["packages/mollie-integration/src/index.ts"],
       "@bigcommerce/checkout/moneris-integration": ["packages/moneris-integration/src/index.ts"],
@@ -93,6 +97,7 @@
       "@bigcommerce/checkout/ppsdk-integration": ["packages/ppsdk-integration/src/index.ts"],
       "@bigcommerce/checkout/squarev2-integration": ["packages/squarev2-integration/src/index.ts"],
       "@bigcommerce/checkout/stripe-integration": ["packages/stripe-integration/src/index.ts"],
+      "@bigcommerce/checkout/stripe-utils": ["packages/stripe-utils/src/index.ts"],
       "@bigcommerce/checkout/td-bank-integration": ["packages/td-bank-integration/src/index.ts"],
       "@bigcommerce/checkout/test-framework": ["packages/test-framework/src/index.ts"],
       "@bigcommerce/checkout/test-mocks": ["packages/test-mocks/src/index.ts"],
@@ -112,6 +117,7 @@
     "strict": true,
     "strictNullChecks": true,
     "stripInternal": true,
-    "target": "es2015"
+    "target": "es2015",
+    "types": ["node", "jest", "google.maps", "applepayjs"]
   }
 }

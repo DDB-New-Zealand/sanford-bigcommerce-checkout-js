@@ -63,14 +63,58 @@
     margin-bottom: spacing("eighth");
 }
 
-.product-options {
-    color: color("greys");
+.product-options, .product-backorder-details-container {
     font-size: fontSize("tiny");
     margin: 0;
 }
 
 .product-description {
     margin-top: spacing("quarter");
+}
+
+.product-backorder-details-container {
+    overflow: hidden;
+    transition:
+        height $animation-collapse-transitionSpeed $animation-collapse-transitionCurve,
+        opacity $animation-collapse-transitionSpeed $animation-collapse-transitionCurve,
+        margin $animation-collapse-transitionSpeed $animation-collapse-transitionCurve;
+}
+
+.product-backorder-status {
+    align-items: center;
+    display: flex;
+
+    &::before {
+        border-radius: 50%;
+        content: '';
+        display: inline-block;
+        flex-shrink: 0;
+        height: remCalc(8px);
+        margin-right: spacing("quarter");
+        width: remCalc(8px);
+    }
+
+    &--onhand {
+        color: $color-successDarker;
+
+        &::before {
+            background-color: $color-successDark;
+        }
+    }
+
+    &--backorder {
+        color: $color-warningDark;
+
+        &::before {
+            background-color: $color-warningDark;
+        }
+    }
+}
+
+.product-backorder-message {
+    color: $color-warningDark;
+    padding-left: calc(#{remCalc(8px)} + #{spacing("quarter")});
+    padding-bottom: spacing("quarter");
 }
 
 .product-actions {
@@ -87,5 +131,33 @@
 }
 
 .product-price--beforeDiscount {
+    color: $color-secondaryDarkest;
     text-decoration: line-through;
+    font-weight: fontWeight('medium');
+}
+
+.product-option {
+    .body-bold {
+        font-weight: $fontWeight-bold;
+    }
+}
+
+// =============================================================================
+// PRODUCT ITEM ANIMATION
+// =============================================================================
+
+// Product item animation (add/remove products via BOGO coupons)
+.productList-item {
+    transition:
+        height $animation-collapse-transitionSpeed $animation-collapse-transitionCurve,
+        opacity $animation-collapse-transitionSpeed $animation-collapse-transitionCurve,
+        transform $animation-collapse-transitionSpeed $animation-collapse-transitionCurve;
+}
+
+// Accessibility: respect prefers-reduced-motion
+@media (prefers-reduced-motion: reduce) {
+    .productList-item,
+    .product-backorder-details-container {
+        transition: opacity 100ms ease-out !important;
+    }
 }

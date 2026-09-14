@@ -15,6 +15,7 @@ import React, { type ReactElement, type ReactNode, useEffect, useRef, useState }
 import { type ObjectSchema } from 'yup';
 
 import {
+    AutoVaultingDisclaimer,
     CardInstrumentFieldset,
     configureCardValidator,
     CreditCardFieldset,
@@ -26,6 +27,7 @@ import {
     isInstrumentCardCodeRequiredSelector,
     isInstrumentCardNumberRequiredSelector,
     isInstrumentFeatureAvailable,
+    isPaymentMethodAutoVaultingInstruments,
     StoreInstrumentFieldset,
 } from '@bigcommerce/checkout/instrument-utils';
 import {
@@ -57,6 +59,7 @@ interface CreditCardPaymentMethodDerivedProps {
     isInstrumentFeatureAvailable: boolean;
     isLoadingInstruments: boolean;
     isPaymentDataRequired: boolean;
+    shouldShowAutoVaultingDisclaimer: boolean;
     shouldShowInstrumentFieldset: boolean;
     isInstrumentCardCodeRequired(instrument: Instrument, method: PaymentMethod): boolean;
     isInstrumentCardNumberRequired(instrument: Instrument, method: PaymentMethod): boolean;
@@ -115,6 +118,7 @@ export const CreditCardPaymentMethodComponent = (
             isInstrumentFeatureAvailable: isInstrumentFeatureAvailableFlag,
             isLoadingInstruments: isLoadingInstrumentsProp(),
             isPaymentDataRequired: isPaymentDataRequired(),
+            shouldShowAutoVaultingDisclaimer: isPaymentMethodAutoVaultingInstruments(method),
             shouldShowInstrumentFieldset:
                 isInstrumentFeatureAvailableFlag && instruments.length > 0,
         };
@@ -207,8 +211,12 @@ export const CreditCardPaymentMethodComponent = (
         } = props;
         const { instruments } = getCreditCardPaymentMethodDerivedProps();
         const { selectedInstrumentId } = state;
+        const remainingInstruments = instruments.filter(
+            (instrument) => instrument.bigpayToken !== id,
+        );
 
-        if (instruments.length === 0) {
+        // TODO: revert to if(instruments.length === 0) after state management issue with delete instrument is resolved
+        if (remainingInstruments.length === 0) {
             setState({
                 ...state,
                 isAddingNewCard: true,
@@ -340,6 +348,7 @@ export const CreditCardPaymentMethodComponent = (
         isInstrumentCardNumberRequired: isInstrumentCardNumberRequiredProp,
         isInstrumentFeatureAvailable: isInstrumentFeatureAvailableProp,
         isLoadingInstruments,
+        shouldShowAutoVaultingDisclaimer,
         shouldShowInstrumentFieldset,
     } = getCreditCardPaymentMethodDerivedProps();
 
@@ -357,7 +366,9 @@ export const CreditCardPaymentMethodComponent = (
 
     const storeConfig = getStoreConfig();
 
-    const SentryMessage = methodProp ? `DataCreditCardFieldset ${JSON.stringify(methodProp)}` : '';
+    const SentryMessage = methodProp
+        ? `DataCreditCardFieldset component gateway=${methodProp.gateway} id=${methodProp.id} type=${methodProp.type}`
+        : '';
 
     if (!storeConfig) {
         throw Error('Unable to get config or customer');
@@ -408,6 +419,10 @@ export const CreditCardPaymentMethodComponent = (
                         instrumentId={selectedInstrument && selectedInstrument.bigpayToken}
                         instruments={outerInstruments}
                     />
+                )}
+
+                {shouldShowAutoVaultingDisclaimer && shouldShowCreditCardFieldset && (
+                    <AutoVaultingDisclaimer />
                 )}
             </div>
         </LoadingOverlay>

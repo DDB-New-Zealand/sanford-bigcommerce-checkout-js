@@ -15,6 +15,35 @@ describe('mapAddressFromFormValues', () => {
         expect(mapAddressFromFormValues(formValues)).toMatchObject(getShippingAddress());
     });
 
+    it('maps extraFields onto the result when present', () => {
+        const formValues: AddressFormValues = {
+            ...omit(getShippingAddress(), 'customFields'),
+            customFields: {},
+            extraFields: {
+                b2bExtraField_100: 'Acme Corp',
+                b2bExtraField_200: 'Engineering',
+            },
+        };
+
+        const result = mapAddressFromFormValues(formValues);
+
+        expect(result.firstName).toBe(getShippingAddress().firstName);
+        expect(result.lastName).toBe(getShippingAddress().lastName);
+        expect(result.extraFields).toEqual([
+            { fieldId: '100', fieldValue: 'Acme Corp' },
+            { fieldId: '200', fieldValue: 'Engineering' },
+        ]);
+    });
+
+    it('omits extraFields when the form did not collect any (B2C)', () => {
+        const formValues: AddressFormValues = {
+            ...omit(getShippingAddress(), 'customFields'),
+            customFields: {},
+        };
+
+        expect(mapAddressFromFormValues(formValues)).not.toHaveProperty('extraFields');
+    });
+
     it('converts formats date values to YYYY-MM-DD format', () => {
         const formValues: AddressFormValues = {
             ...omit(getShippingAddress(), 'customFields'),

@@ -1,6 +1,6 @@
 import * as domUtils from '@bigcommerce/checkout/dom-utils';
 
-import { getAppearanceForOCSElement, getFonts } from './getStripeOCSStyles';
+import { CheckoutTheme, getAppearanceForOCSElement, getFonts } from './getStripeOCSStyles';
 
 describe('getStripeOCSStyles', () => {
     afterEach(() => {
@@ -23,6 +23,9 @@ describe('getStripeOCSStyles', () => {
             [`#${containerId}--error`]: {
                 color: 'red',
             },
+            [`#${containerId}--accordion-header`]: {
+                'background-color': '#fcfcfc',
+            },
             [`#${containerId}--accordion-header .form-label`]: {
                 color: 'green',
                 'font-size': '16px',
@@ -34,11 +37,15 @@ describe('getStripeOCSStyles', () => {
             },
             [`#${containerId}--accordion-header.optimizedCheckout-form-checklist-item`]: {
                 'border-bottom': '1px solid black',
+                'border-top': '1px solid black',
+                'border-left': '1px solid black',
+                'border-right': '1px solid black',
                 'border-color': 'yellow',
+                'border-radius': '4px',
             },
             [`#${containerId}--accordion-header .form-label::before`]: {
                 'border-color': 'black',
-                'border-width': '1px',
+                'border-width': '1.5px',
                 'background-color': 'white',
                 width: '30px',
             },
@@ -59,6 +66,9 @@ describe('getStripeOCSStyles', () => {
             },
             [`#${containerId}--accordion-header-selected`]: {
                 'background-color': '#fcfcfc',
+                'border-color': '#4496f6',
+                'margin-bottom': '8px',
+                'margin-top': '8px',
             },
         };
 
@@ -105,6 +115,7 @@ describe('getStripeOCSStyles', () => {
                     colorTextPlaceholder: 'black',
                     colorIcon: 'black',
                     fontFamily: 'Monaco, sans-serif',
+                    accordionItemSpacing: '16px',
                 },
                 rules: {
                     '.Input': {
@@ -113,10 +124,13 @@ describe('getStripeOCSStyles', () => {
                         boxShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
                     },
                     '.AccordionItem': {
-                        borderRadius: 0,
-                        borderWidth: 0,
+                        borderRadius: '4px',
+                        borderTop: '1px solid black',
+                        borderRight: '1px solid black',
                         borderBottom: '1px solid black',
+                        borderLeft: '1px solid black',
                         borderColor: 'yellow',
+                        backgroundColor: '#fcfcfc',
                         boxShadow: 'none',
                         fontSize: '16px',
                         fontWeight: 'bold',
@@ -124,13 +138,14 @@ describe('getStripeOCSStyles', () => {
                         padding: '10px 10px 10px 18px',
                     },
                     '.AccordionItem:hover': {
-                        color: 'green',
                         backgroundColor: '#fcfcfc',
+                        color: 'green',
                     },
                     '.AccordionItem--selected': {
                         fontWeight: 'bold',
                         color: 'green',
                         backgroundColor: '#fcfcfc',
+                        borderColor: '#4496f6',
                     },
                     '.TabLabel': {
                         color: 'green',
@@ -147,13 +162,115 @@ describe('getStripeOCSStyles', () => {
                         fill: '#4496f6',
                     },
                     '.RadioIconOuter': {
-                        strokeWidth: '2.93px',
+                        strokeWidth: '4.40px',
                         stroke: 'black',
                         fill: 'white',
                     },
                     '.RadioIconOuter--checked': {
                         fill: '#4496f6',
                         stroke: '#4496f6',
+                    },
+                    '.ToggleItem': {
+                        borderRadius: '4px',
+                        border: '1px solid black',
+                        backgroundColor: '#fcfcfc',
+                        boxShadow: 'none',
+                        outline: 'none',
+                    },
+                    '.ToggleItem--selected': {
+                        fontWeight: 'bold',
+                        color: 'green',
+                        backgroundColor: '#fcfcfc',
+                        borderColor: '#4496f6',
+                        outline: 'none',
+                        boxShadow: 'none',
+                    },
+                },
+            });
+        });
+
+        it('returns the correct styles for the OCS element and enhancedThemeV1', () => {
+            expect(
+                getAppearanceForOCSElement(containerId, CheckoutTheme.ENHANCED_THEME_V1),
+            ).toEqual({
+                variables: {
+                    colorPrimary: '0 0 5px rgba(0, 0, 0, 0.5)',
+                    colorBackground: 'white',
+                    colorText: 'blue',
+                    colorDanger: 'red',
+                    colorTextSecondary: 'blue',
+                    colorTextPlaceholder: 'black',
+                    colorIcon: 'black',
+                    fontFamily: 'Monaco, sans-serif',
+                    accordionItemSpacing: '16px',
+                },
+                rules: {
+                    '.Input': {
+                        borderColor: 'gray',
+                        color: 'black',
+                        boxShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
+                    },
+                    '.AccordionItem': {
+                        borderRadius: '4px',
+                        borderTop: '1px solid black',
+                        borderRight: '1px solid black',
+                        borderBottom: '1px solid black',
+                        borderLeft: '1px solid black',
+                        borderColor: 'yellow',
+                        backgroundColor: '#fcfcfc',
+                        boxShadow: 'none',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: 'green',
+                        padding: '10px 10px 10px 18px',
+                    },
+                    '.AccordionItem:hover': {
+                        backgroundColor: '#fcfcfc',
+                        color: 'green',
+                    },
+                    '.AccordionItem--selected': {
+                        fontWeight: 'bold',
+                        color: 'green',
+                        backgroundColor: '#fcfcfc',
+                        borderColor: '#4496f6',
+                    },
+                    '.TabLabel': {
+                        color: 'green',
+                    },
+                    '.RadioIcon': {
+                        width: '34.09px',
+                    },
+                    '.RadioIconInner': {
+                        r: '29.04',
+                        fill: 'white',
+                    },
+                    '.RadioIconInner--checked': {
+                        r: '29.04',
+                        fill: '#4496f6',
+                    },
+                    '.RadioIconOuter': {
+                        strokeWidth: '4.40px',
+                        stroke: 'black',
+                        fill: 'white',
+                    },
+                    '.RadioIconOuter--checked': {
+                        fill: '#4496f6',
+                        stroke: '#4496f6',
+                    },
+                    '.ToggleItem': {
+                        borderRadius: '4px',
+                        border: '1px solid black',
+                        backgroundColor: '#fcfcfc',
+                        boxShadow: 'none',
+                        outline: 'none',
+                    },
+                    '.ToggleItem--selected': {
+                        fontWeight: 'bold',
+                        color: 'green',
+                        backgroundColor: '#fcfcfc',
+                        borderColor: '#4496f6',
+                        outline: 'none',
+                        boxShadow: 'none',
                     },
                 },
             });
@@ -192,10 +309,13 @@ describe('getStripeOCSStyles', () => {
                 expect.objectContaining({
                     rules: expect.objectContaining({
                         '.AccordionItem': {
-                            borderRadius: 0,
-                            borderWidth: 0,
+                            borderRadius: '4px',
+                            borderTop: '1px solid black',
+                            borderRight: '1px solid black',
                             borderBottom: '1px solid black',
+                            borderLeft: '1px solid black',
                             borderColor: 'yellow',
+                            backgroundColor: '#fcfcfc',
                             boxShadow: 'none',
                             fontSize: '16px',
                             fontWeight: 'bold',
@@ -220,6 +340,7 @@ describe('getStripeOCSStyles', () => {
                     colorTextPlaceholder: undefined,
                     colorIcon: undefined,
                     fontFamily: undefined,
+                    accordionItemSpacing: '0px',
                 },
                 rules: {
                     '.Input': {
@@ -228,10 +349,13 @@ describe('getStripeOCSStyles', () => {
                         boxShadow: undefined,
                     },
                     '.AccordionItem': {
-                        borderRadius: 0,
-                        borderWidth: 0,
+                        borderRadius: undefined,
+                        borderTop: undefined,
+                        borderRight: undefined,
                         borderBottom: undefined,
+                        borderLeft: undefined,
                         borderColor: undefined,
+                        backgroundColor: undefined,
                         boxShadow: 'none',
                         fontSize: undefined,
                         fontWeight: undefined,
@@ -239,13 +363,14 @@ describe('getStripeOCSStyles', () => {
                         padding: undefined,
                     },
                     '.AccordionItem:hover': {
-                        color: undefined,
                         backgroundColor: undefined,
+                        color: undefined,
                     },
                     '.AccordionItem--selected': {
                         fontWeight: 'bold',
                         color: undefined,
                         backgroundColor: undefined,
+                        borderColor: undefined,
                     },
                     '.TabLabel': {
                         color: undefined,
@@ -270,8 +395,212 @@ describe('getStripeOCSStyles', () => {
                         stroke: undefined,
                         fill: undefined,
                     },
+                    '.ToggleItem': {
+                        borderRadius: '4px',
+                        border: undefined,
+                        backgroundColor: undefined,
+                        boxShadow: 'none',
+                        outline: 'none',
+                    },
+                    '.ToggleItem--selected': {
+                        fontWeight: 'bold',
+                        color: undefined,
+                        backgroundColor: undefined,
+                        outline: 'none',
+                        boxShadow: 'none',
+                    },
                 },
             });
+        });
+
+        it('returns the default radio icon scales for default checkout theme', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header-selected .form-label::after`]: {
+                    'border-color': '#4496f6',
+                    'background-color': '#4496f6',
+                },
+            });
+
+            expect(getAppearanceForOCSElement(containerId)).toEqual(
+                expect.objectContaining({
+                    rules: expect.objectContaining({
+                        '.RadioIconInner': {
+                            r: '29.04',
+                            fill: 'white',
+                        },
+                    }),
+                }),
+            );
+        });
+
+        it('returns the default radio icon scales for checkout theme v2', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header-selected .form-label::after`]: {
+                    'border-color': '#4496f6',
+                    'background-color': '#4496f6',
+                },
+            });
+
+            expect(
+                getAppearanceForOCSElement(containerId, CheckoutTheme.ENHANCED_THEME_V1),
+            ).toEqual(
+                expect.objectContaining({
+                    rules: expect.objectContaining({
+                        '.RadioIconInner': {
+                            r: '15.84',
+                            fill: 'white',
+                        },
+                    }),
+                }),
+            );
+        });
+
+        it('returns the default radio icon scales from existing checkout element', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header-selected .form-label::after`]: {
+                    'border-color': '#4496f6',
+                    'background-color': '#4496f6',
+                    transform: 'matrix(0.8, 0, 0, 0.8, 0, 0)',
+                },
+            });
+
+            expect(
+                getAppearanceForOCSElement(containerId, CheckoutTheme.ENHANCED_THEME_V1),
+            ).toEqual(
+                expect.objectContaining({
+                    rules: expect.objectContaining({
+                        '.RadioIconInner': {
+                            r: '35.20',
+                            fill: 'white',
+                        },
+                    }),
+                }),
+            );
+        });
+
+        it('sums accordion header top and bottom margins into accordionItemSpacing', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header-selected`]: {
+                    ...defaultStyles[`#${containerId}--accordion-header-selected`],
+                    'margin-top': '5px',
+                    'margin-bottom': '7px',
+                },
+            });
+
+            expect(getAppearanceForOCSElement(containerId)).toEqual(
+                expect.objectContaining({
+                    variables: expect.objectContaining({
+                        accordionItemSpacing: '12px',
+                    }),
+                }),
+            );
+        });
+
+        it('falls back to 0px accordionItemSpacing when margins are missing', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header-selected`]: {
+                    ...defaultStyles[`#${containerId}--accordion-header-selected`],
+                    'margin-top': undefined,
+                    'margin-bottom': undefined,
+                },
+            });
+
+            expect(getAppearanceForOCSElement(containerId)).toEqual(
+                expect.objectContaining({
+                    variables: expect.objectContaining({
+                        accordionItemSpacing: '0px',
+                    }),
+                }),
+            );
+        });
+
+        it('uses hardcoded 4px ToggleItem border radius and radio inner color for selected border in default theme', () => {
+            expect(getAppearanceForOCSElement(containerId)).toEqual(
+                expect.objectContaining({
+                    rules: expect.objectContaining({
+                        '.ToggleItem': expect.objectContaining({
+                            borderRadius: '4px',
+                        }),
+                        '.ToggleItem--selected': expect.objectContaining({
+                            borderColor: '#4496f6',
+                        }),
+                    }),
+                }),
+            );
+        });
+
+        it('uses form checklist border radius and accordion selected border color for ToggleItem in enhancedThemeV1', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header.optimizedCheckout-form-checklist-item`]: {
+                    ...defaultStyles[
+                        `#${containerId}--accordion-header.optimizedCheckout-form-checklist-item`
+                    ],
+                    'border-radius': '12px',
+                },
+                [`#${containerId}--accordion-header-selected`]: {
+                    ...defaultStyles[`#${containerId}--accordion-header-selected`],
+                    'border-color': '#abcdef',
+                },
+            });
+
+            expect(
+                getAppearanceForOCSElement(containerId, CheckoutTheme.ENHANCED_THEME_V1),
+            ).toEqual(
+                expect.objectContaining({
+                    rules: expect.objectContaining({
+                        '.ToggleItem': expect.objectContaining({
+                            borderRadius: '12px',
+                        }),
+                        '.ToggleItem--selected': expect.objectContaining({
+                            borderColor: '#abcdef',
+                        }),
+                    }),
+                }),
+            );
+        });
+
+        it('omits ToggleItem borderRadius for enhancedThemeV1 when form checklist border radius is missing', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header.optimizedCheckout-form-checklist-item`]: {
+                    ...defaultStyles[
+                        `#${containerId}--accordion-header.optimizedCheckout-form-checklist-item`
+                    ],
+                    'border-radius': undefined,
+                },
+            });
+
+            const appearance = getAppearanceForOCSElement(
+                containerId,
+                CheckoutTheme.ENHANCED_THEME_V1,
+            );
+
+            expect(appearance.rules?.['.ToggleItem']).not.toHaveProperty('borderRadius');
+        });
+
+        it('omits ToggleItem--selected borderColor for default theme when radio inner background is missing', () => {
+            mockGetAppliedStyles({
+                ...defaultStyles,
+                [`#${containerId}--accordion-header-selected .form-label::after`]: {
+                    ...defaultStyles[
+                        `#${containerId}--accordion-header-selected .form-label::after`
+                    ],
+                    'background-color': undefined,
+                },
+                '.form-checklist-header--selected .form-label::after': {
+                    'background-color': undefined,
+                },
+            });
+
+            const appearance = getAppearanceForOCSElement(containerId);
+
+            expect(appearance.rules?.['.ToggleItem--selected']).not.toHaveProperty('borderColor');
         });
     });
 });

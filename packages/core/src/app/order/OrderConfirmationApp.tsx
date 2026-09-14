@@ -1,10 +1,19 @@
-import { createCheckoutService, createEmbeddedCheckoutMessenger } from '@bigcommerce/checkout-sdk/essential';
+import {
+    createCheckoutService,
+    createEmbeddedCheckoutMessenger,
+} from '@bigcommerce/checkout-sdk/essential';
 import type { BrowserOptions } from '@sentry/browser';
 import React, { useCallback, useEffect, useMemo } from 'react';
 import ReactModal from 'react-modal';
 
 import { ExtensionService } from '@bigcommerce/checkout/checkout-extension';
-import { AnalyticsProvider, CheckoutProvider, ExtensionProvider, LocaleProvider, ThemeProvider } from '@bigcommerce/checkout/contexts';
+import {
+    AnalyticsProvider,
+    CheckoutProvider,
+    ExtensionProvider,
+    LocaleProvider,
+    ThemeProvider,
+} from '@bigcommerce/checkout/contexts';
 import { ErrorBoundary } from '@bigcommerce/checkout/error-handling-utils';
 import { getLanguageService } from '@bigcommerce/checkout/locale';
 
@@ -14,7 +23,7 @@ import { createErrorLogger } from '../common/error';
 import { createEmbeddedCheckoutStylesheet } from '../embeddedCheckout';
 import { AccountService, type CreatedCustomer, type SignUpFormValues } from '../guestSignup';
 
-import { OrderConfirmation } from './OrderConfirmation';
+import { OrderConfirmation, type OrderPermalinkStatus } from './OrderConfirmation';
 
 export interface OrderConfirmationAppProps {
     containerId: string;
@@ -22,6 +31,7 @@ export interface OrderConfirmationAppProps {
     publicPath?: string;
     sentryConfig?: BrowserOptions;
     sentrySampleRate?: number;
+    permalinkStatus?: OrderPermalinkStatus | null;
 }
 
 const OrderConfirmationApp: React.FC<OrderConfirmationAppProps> = ({
@@ -30,22 +40,31 @@ const OrderConfirmationApp: React.FC<OrderConfirmationAppProps> = ({
     publicPath,
     sentryConfig,
     sentrySampleRate,
+    permalinkStatus,
 }) => {
     const accountService = useMemo(() => new AccountService(), []);
-    const errorLogger = useMemo(() => createErrorLogger(
-        { sentry: sentryConfig },
-        {
-            errorTypes: ['UnrecoverableError'],
-            publicPath,
-            sampleRate: sentrySampleRate || 0.1,
-        },
-    ), []);
+    const errorLogger = useMemo(
+        () =>
+            createErrorLogger(
+                { sentry: sentryConfig },
+                {
+                    errorTypes: ['UnrecoverableError'],
+                    publicPath,
+                    sampleRate: sentrySampleRate || 0.1,
+                },
+            ),
+        [],
+    );
     const languageService = useMemo(() => getLanguageService(), []);
-    const checkoutService = useMemo(() => createCheckoutService({
-        locale: languageService.getLocale(),
-        shouldWarnMutation: process.env.NODE_ENV === 'development',
-        errorLogger,
-    }), []);
+    const checkoutService = useMemo(
+        () =>
+            createCheckoutService({
+                locale: languageService.getLocale(),
+                shouldWarnMutation: process.env.NODE_ENV === 'development',
+                errorLogger,
+            }),
+        [],
+    );
     const extensionService = useMemo(() => new ExtensionService(checkoutService, errorLogger), []);
     const embeddedStylesheet = useMemo(() => createEmbeddedCheckoutStylesheet(), []);
 
@@ -79,6 +98,7 @@ const OrderConfirmationApp: React.FC<OrderConfirmationAppProps> = ({
                                     embeddedStylesheet={embeddedStylesheet}
                                     errorLogger={errorLogger}
                                     orderId={orderId}
+                                    permalinkStatus={permalinkStatus}
                                 />
                             </ThemeProvider>
                         </ExtensionProvider>

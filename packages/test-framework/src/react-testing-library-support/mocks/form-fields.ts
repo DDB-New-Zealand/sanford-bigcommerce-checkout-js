@@ -1,4 +1,4 @@
-import { type FormField, type FormFields } from '@bigcommerce/checkout-sdk';
+import { type ExtraField, type FormField, type FormFields } from '@bigcommerce/checkout-sdk';
 
 const formFields: FormFields = {
     billingAddress: [
@@ -85,7 +85,7 @@ const formFields: FormFields = {
             custom: false,
             label: 'Country',
             required: true,
-            default: null,
+            default: '',
             maxLength: undefined,
             type: 'array',
             fieldType: 'dropdown',
@@ -100,7 +100,7 @@ const formFields: FormFields = {
             custom: false,
             label: 'State\\/Province',
             required: true,
-            default: null,
+            default: '',
             maxLength: undefined,
         },
         {
@@ -199,7 +199,7 @@ const formFields: FormFields = {
             custom: false,
             label: 'Country',
             required: true,
-            default: null,
+            default: '',
             maxLength: undefined,
             type: 'array',
             fieldType: 'dropdown',
@@ -214,7 +214,7 @@ const formFields: FormFields = {
             custom: false,
             label: 'State\\/Province',
             required: true,
-            default: null,
+            default: '',
             maxLength: undefined,
         },
         {
@@ -234,7 +234,7 @@ const formFields: FormFields = {
             custom: true,
             label: 'Shipping Instructions',
             required: false,
-            default: null,
+            default: '',
             maxLength: undefined,
             type: 'array',
             fieldType: 'dropdown',
@@ -389,7 +389,7 @@ const customFormFields: FormField[] = [
         custom: true,
         label: 'Custom Checkbox',
         required: true,
-        default: null,
+        default: '',
         maxLength: undefined,
         type: 'array',
         fieldType: 'checkbox',
@@ -416,7 +416,7 @@ const customFormFields: FormField[] = [
         custom: true,
         label: 'Custom Radio',
         required: true,
-        default: null,
+        default: '',
         maxLength: undefined,
         type: 'array',
         fieldType: 'radio',
@@ -445,6 +445,43 @@ const customFormFields: FormField[] = [
         min: 3,
         max: 5,
     },
+    {
+        custom: true,
+        default: undefined,
+        fieldType: 'text',
+        id: 'field_34',
+        label: 'Number with max validation',
+        name: 'field_34',
+        required: false,
+        type: 'integer',
+        min: undefined,
+        max: 10,
+    },
+    {
+        custom: true,
+        default: undefined,
+        fieldType: 'text',
+        id: 'field_35',
+        label: 'Number with min validation',
+        name: 'field_35',
+        required: false,
+        type: 'integer',
+        min: 5,
+        max: undefined,
+    },
 ];
 
-export { formFields, customFormFields };
+const addressExtraFields: ExtraField[] = [
+    {
+        id: '1',
+        name: 'B2B Billing Extra',
+        visibleToStorefront: true,
+        isRequired: false,
+        type: 'text',
+        config: {
+            defaultValue: '',
+        },
+    },
+];
+
+export { addressExtraFields, formFields, customFormFields };

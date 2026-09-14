@@ -3,6 +3,7 @@ import {
     type PaymentInitializeOptions,
 } from '@bigcommerce/checkout-sdk';
 import {
+    createStripeCSPaymentStrategy,
     createStripeLinkV2CustomerStrategy,
     createStripeOCSPaymentStrategy,
 } from '@bigcommerce/checkout-sdk/integrations/stripe';
@@ -16,6 +17,7 @@ import React, {
     useState,
 } from 'react';
 
+import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { HostedWidgetPaymentComponent } from '@bigcommerce/checkout/hosted-widget-integration';
 import {
     isInstrumentCardCodeRequiredSelector,
@@ -28,7 +30,7 @@ import {
 } from '@bigcommerce/checkout/payment-integration-api';
 import { AccordionContext, ChecklistSkeleton } from '@bigcommerce/checkout/ui';
 
-import { getAppearanceForOCSElement, getFonts } from './getStripeOCSStyles';
+import { CheckoutTheme, getAppearanceForOCSElement, getFonts } from './getStripeOCSStyles';
 
 const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
     paymentForm,
@@ -45,8 +47,10 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
         selectedItemId,
     );
     const [isOCSLoading, setIsOCSLoading] = useState(false);
+    const { enhancedThemeV1 } = useThemeContext();
     const methodSelector = `${method.gateway}-${method.id}`;
     const containerId = `${methodSelector}-component-field`;
+    const currencySelectorContainerId = `${methodSelector}-provider-section-on-top-of-payments-list`;
     const paymentContext = paymentForm;
 
     useEffect(() => {
@@ -98,7 +102,6 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
         setValidationSchema,
     } = paymentForm;
     const instruments = checkoutState.data.getInstruments(method) || [];
-
     const {
         data: { getCheckout, isPaymentDataRequired },
         statuses: { isLoadingInstruments },
@@ -112,20 +115,23 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
         async (options: PaymentInitializeOptions) => {
             setIsOCSLoading(true);
 
+            const theme = enhancedThemeV1 ? CheckoutTheme.ENHANCED_THEME_V1 : CheckoutTheme.DEFAULT;
+
             return checkoutService.initializePayment({
                 ...options,
-                integrations: [createStripeOCSPaymentStrategy],
+                integrations: [createStripeOCSPaymentStrategy, createStripeCSPaymentStrategy],
                 stripeocs: {
                     containerId,
+                    currencySelectorContainerId,
                     layout: {
                         type: isCustomChecklistItem ? 'accordion' : 'auto',
                         defaultCollapsed: selectedItemId !== methodSelector,
-                        radios: true,
+                        radios: 'always',
                         linkInAccordion: true,
-                        spacedAccordionItems: false,
+                        spacedAccordionItems: enhancedThemeV1,
                         visibleAccordionItemsCount: 0,
                     },
-                    appearance: getAppearanceForOCSElement(containerId),
+                    appearance: getAppearanceForOCSElement(containerId, theme),
                     fonts: getFonts(),
                     onError: onUnhandledError,
                     render: renderSubmitButton,
@@ -139,9 +145,11 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
         },
         [
             containerId,
+            currencySelectorContainerId,
             selectedItemId,
             methodSelector,
             isCustomChecklistItem,
+            enhancedThemeV1,
             checkoutService,
             onUnhandledError,
             renderSubmitButton,
@@ -150,18 +158,6 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
         ],
     );
 
-    const renderCustomOCSSectionStyles = () => (
-        <style>
-            {`
-                .custom-checklist-item#radio-${methodSelector} {
-                    border-bottom: none;
-                }
-                .custom-checklist-item#radio-${methodSelector}:last-of-type {
-                    margin-bottom: -1px;
-                }
-            `}
-        </style>
-    );
     const initializeStripeCustomer = useCallback(
         (options: CustomerInitializeOptions) => {
             return checkoutService.initializeCustomer({
@@ -171,6 +167,41 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
         },
         [checkoutService],
     );
+
+    if (!isPaymentDataRequired()) {
+        return null;
+    }
+
+    const renderCustomOCSSectionStyles = () => {
+        const currencySelectorStyles = `
+            #${currencySelectorContainerId} {
+                margin-bottom: 20px;
+            }
+        `;
+
+        return enhancedThemeV1 ? (
+            <style>
+                {`
+                    .custom-checklist-item#radio-${methodSelector} {
+                        border: none;
+                    }
+                `}
+                {currencySelectorStyles}
+            </style>
+        ) : (
+            <style>
+                {`
+                    .custom-checklist-item#radio-${methodSelector} {
+                        border-bottom: none;
+                    }
+                    .custom-checklist-item#radio-${methodSelector}:last-of-type {
+                        margin-bottom: -1px;
+                    }
+                `}
+                {currencySelectorStyles}
+            </style>
+        );
+    };
 
     const renderCheckoutElementsForStripeOCSStyling = () => (
         <div style={{ display: 'none' }}>
@@ -183,19 +214,24 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
                     id={`${containerId}-radio-input`}
                     type="radio"
                 />
-                <div className="form-label optimizedCheckout-form-label" />
+                <div className="form-label optimizedCheckout-form-label sub-header" />
             </div>
             <div
-                className="form-checklist-header--selected"
+                className="form-checklist-item optimizedCheckout-form-checklist-item form-checklist-item--selected optimizedCheckout-form-checklist-item--selected"
                 id={`${containerId}--accordion-header-selected`}
             >
-                <input
-                    className="form-checklist-checkbox optimizedCheckout-form-checklist-checkbox"
-                    defaultChecked
-                    id={`${containerId}-radio-input-selected`}
-                    type="radio"
-                />
-                <div className="form-label optimizedCheckout-form-label" />
+                <div
+                    className="form-checklist-header--selected"
+                    id={`${containerId}--accordion-header-selected`}
+                >
+                    <input
+                        className="form-checklist-checkbox optimizedCheckout-form-checklist-checkbox"
+                        defaultChecked
+                        id={`${containerId}-radio-input-selected`}
+                        type="radio"
+                    />
+                    <div className="form-label optimizedCheckout-form-label" />
+                </div>
             </div>
             <div className="optimizedCheckout-form-input" id={`${containerId}--input`}>
                 <div className="form-field--error">
@@ -248,5 +284,8 @@ const StripeOCSPaymentMethod: FunctionComponent<PaymentMethodProps> = ({
 
 export default toResolvableComponent<PaymentMethodProps, PaymentMethodResolveId>(
     StripeOCSPaymentMethod,
-    [{ gateway: 'stripeocs', id: 'optimized_checkout' }],
+    [
+        { gateway: 'stripeocs', id: 'optimized_checkout' },
+        { gateway: 'stripeocs', id: 'checkout_session' },
+    ],
 );

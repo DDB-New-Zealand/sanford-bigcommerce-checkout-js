@@ -1,4 +1,4 @@
-import { type CheckoutService, createCheckoutService, type StripeShippingEvent } from '@bigcommerce/checkout-sdk';
+import { type CheckoutService, createCheckoutService } from '@bigcommerce/checkout-sdk';
 import noop from 'lodash/noop';
 import React from 'react';
 
@@ -9,6 +9,7 @@ import { getCountries } from '../../geography/countries.mock';
 import { getConsignment } from '../consignment.mock';
 import { getShippingAddress } from '../shipping-addresses.mock';
 
+import { type StripeShippingEvent } from './stripe-types';
 import StripeShippingAddress, { type StripeShippingAddressProps } from './StripeShippingAddress';
 
 describe('StripeShippingAddress Component', () => {
@@ -35,20 +36,20 @@ describe('StripeShippingAddress Component', () => {
         },
     };
 
-    const renderTestComponent = (props?: Partial<StripeShippingAddressProps>) => 
+    const renderTestComponent = (props?: Partial<StripeShippingAddressProps>) =>
         render(<StripeShippingAddress {...defaultProps} {...props} />);
 
     const getInitializeMock = (
         onChangeShippingPayload?: StripeShippingEvent,
         stripeExperiments: Record<string, boolean> = {},
-    ): jest.Mock => 
+    ): jest.Mock =>
         jest.fn((options) => {
             const {
                 getStyles = noop,
                 onChangeShipping = noop,
                 setStripeExperiments = noop,
             } = options.stripeupe || {};
-            
+
             setStripeExperiments(stripeExperiments);
             onChangeShipping(onChangeShippingPayload || stripeEvent);
             getStyles();
@@ -65,12 +66,14 @@ describe('StripeShippingAddress Component', () => {
                 ...getShippingAddress(),
                 address1: 'x',
             },
-            step: { isActive: false,
+            step: {
+                isActive: false,
                 isComplete: false,
                 isEditable: false,
                 isRequired: true,
                 isBusy: false,
-                type: CheckoutStepType.Shipping },
+                type: CheckoutStepType.Shipping,
+            },
             isStripeLoading: jest.fn(),
             isShippingMethodLoading: false,
             shouldDisableSubmit: false,
@@ -86,8 +89,7 @@ describe('StripeShippingAddress Component', () => {
                 return { color: '#cccccc' };
             },
         }));
-        jest.spyOn(document, 'getElementById')
-            .mockReturnValue(dummyElement);
+        jest.spyOn(document, 'getElementById').mockReturnValue(dummyElement);
     });
 
     afterEach(() => {
@@ -97,7 +99,10 @@ describe('StripeShippingAddress Component', () => {
     it('renders StripeShippingAddress with initialize props', async () => {
         defaultProps.initialize = getInitializeMock({
             ...stripeEvent,
-            value: { ...stripeEvent.value, address: { ...stripeEvent.value.address, line2: 'string' } },
+            value: {
+                ...stripeEvent.value,
+                address: { ...stripeEvent.value.address, line2: 'string' },
+            },
         });
 
         renderTestComponent();
@@ -286,7 +291,7 @@ describe('StripeShippingAddress Component', () => {
                 address: {
                     ...stripeEvent.value.address,
                     country: 'GB',
-                }
+                },
             },
         });
 
@@ -310,8 +315,8 @@ describe('StripeShippingAddress Component', () => {
                 {
                     ...defaultProps.consignments[0],
                     availableShippingOptions: [],
-                }
-            ]
+                },
+            ],
         });
 
         expect(defaultProps.isStripeLoading).toHaveBeenCalled();
@@ -350,8 +355,7 @@ describe('StripeShippingAddress Component', () => {
             getAppliedStyles: getAppliedStylesMock,
         }));
 
-        jest.spyOn(document, 'getElementById')
-            .mockReturnValue(null);
+        jest.spyOn(document, 'getElementById').mockReturnValue(null);
 
         defaultProps.initialize = getInitializeMock();
 

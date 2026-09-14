@@ -62,16 +62,11 @@ const ShippingAddress: FunctionComponent<ShippingAddressProps> = (props) => {
                 methodId={methodId}
                 shippingAddress={shippingAddress}
             />
-        )
+        );
     }
 
     if (methodId === 'amazonpay' && shippingAddress) {
-        return (
-            <AmazonPayShippingAddress
-                {...props}
-                shippingAddress={shippingAddress}
-            />
-        );
+        return <AmazonPayShippingAddress {...props} shippingAddress={shippingAddress} />;
     }
 
     return (
@@ -83,6 +78,7 @@ const ShippingAddress: FunctionComponent<ShippingAddressProps> = (props) => {
             onAddressSelect={onAddressSelect}
             onFieldChange={handleFieldChange}
             onUseNewAddress={onUseNewAddress}
+            validateMaxLength
         />
     );
 };

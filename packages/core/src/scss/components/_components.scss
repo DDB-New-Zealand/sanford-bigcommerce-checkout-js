@@ -39,6 +39,9 @@
 // Loading
 @import "bigcommerce/loading/component";
 
+// Switch
+@import "bigcommerce/switch/component";
+
 // =============================================================================
 // CHECKOUT COMPONENTS
 // =============================================================================
@@ -57,6 +60,9 @@
 
 // CartModal
 @import "checkout/cartModal/component";
+
+// Cart Stock Modal
+@import "checkout/cartStockModal/component";
 
 // ChangeHighligh
 @import "checkout/changeHighlight/component";
@@ -132,3 +138,6 @@
 
 // Checkout Skeleton
 @import "checkout/loadingSkeleton/component";
+
+// (multi) Coupon
+@import "checkout/coupon/component";

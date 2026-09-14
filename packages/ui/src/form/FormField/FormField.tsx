@@ -1,4 +1,4 @@
-import { type FieldProps } from 'formik';
+import { type FieldConfig, type FieldProps } from 'formik';
 import { kebabCase } from 'lodash';
 import React, { type FunctionComponent, memo, type ReactNode, useCallback } from 'react';
 
@@ -14,7 +14,7 @@ export interface FormFieldProps {
     footer?: ReactNode;
     id?: string;
     isFloatingLabelEnabled?: boolean;
-    themeV2?: boolean;
+    validate?: FieldConfig['validate'];
     input(field: FieldProps<string>): ReactNode;
     onChange?(value: string): void;
 }
@@ -29,17 +29,23 @@ const FormField: FunctionComponent<FormFieldProps> = ({
     name,
     id,
     isFloatingLabelEnabled,
-    themeV2 = false,
+    validate,
 }) => {
+    let labelClassName = 'body-medium';
+
+    if (isFloatingLabelEnabled) {
+        labelClassName = 'floating-form-field-label';
+    }
+
     const renderField = useCallback(
         (props: FieldProps<string>) => (
             <>
                 {isFloatingLabelEnabled && input(props)}
 
-                {label !== undefined && (typeof label === 'function' ? label(name) : label)}
-                {labelContent !== undefined && !label && (
+                {label != null && (typeof label === 'function' ? label(name) : label)}
+                {labelContent != null && label == null && (
                     <Label
-                        additionalClassName={themeV2 ? 'floating-form-field-label' : ''}
+                        additionalClassName={labelClassName}
                         htmlFor={name}
                         id={`${id ?? name}-label`}
                         isFloatingLabelEnabled={isFloatingLabelEnabled}
@@ -59,7 +65,7 @@ const FormField: FunctionComponent<FormFieldProps> = ({
                 {footer}
             </>
         ),
-        [isFloatingLabelEnabled, input, label, name, labelContent, themeV2, id, footer],
+        [isFloatingLabelEnabled, input, label, name, labelContent, labelClassName, id, footer],
     );
 
     return (
@@ -68,6 +74,7 @@ const FormField: FunctionComponent<FormFieldProps> = ({
             name={name}
             onChange={onChange}
             render={renderField}
+            validate={validate}
         />
     );
 };

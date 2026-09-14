@@ -1,17 +1,26 @@
 import '@testing-library/jest-dom';
-import { type CheckoutService, createCheckoutService } from '@bigcommerce/checkout-sdk';
+import {
+    type CheckoutService,
+    createCheckoutService,
+    type CustomerAddress,
+} from '@bigcommerce/checkout-sdk';
 import { noop } from 'lodash';
 import React from 'react';
 
-import { CheckoutProvider, LocaleContext, type LocaleContextType } from '@bigcommerce/checkout/contexts';
+import {
+    CheckoutProvider,
+    defaultCapabilities,
+    LocaleContext,
+    type LocaleContextType,
+} from '@bigcommerce/checkout/contexts';
 import { createLocaleContext } from '@bigcommerce/checkout/locale';
 import { fireEvent, render, screen } from '@bigcommerce/checkout/test-utils';
 
 import { getCheckout } from '../checkout/checkouts.mock';
 import { getStoreConfig } from '../config/config.mock';
-import { getCustomer } from '../customer/customers.mock';
+import { getB2BCustomer, getCustomer } from '../customer/customers.mock';
 
-import { getAddress } from './address.mock';
+import { getAddress, getCustomerAddressB2B } from './address.mock';
 import AddressSelect, { type AddressSelectProps } from './AddressSelect';
 import AddressType from './AddressType';
 import { getAddressContent } from './SingleLineStaticAddress';
@@ -32,8 +41,36 @@ describe('AddressSelect component', () => {
                         {...props}
                     />
                 </LocaleContext.Provider>
-            </CheckoutProvider>
+            </CheckoutProvider>,
         );
+    };
+
+    const b2bAddresses = getB2BCustomer().addresses;
+
+    const mockB2BAddresses: CustomerAddress[] = [
+        ...b2bAddresses,
+        ...[100, 101, 102].map((id) => ({
+            ...getAddress(),
+            id,
+            type: 'company',
+            address1: `${id} Extra Billing Way`,
+            ...getCustomerAddressB2B({ isBilling: true }),
+        })),
+    ];
+
+    const mockCapabilities = (capabilities: Partial<typeof defaultCapabilities>) => {
+        const storeConfig = getStoreConfig();
+
+        jest.spyOn(checkoutService.getState().data, 'getConfig').mockReturnValue({
+            ...storeConfig,
+            checkoutSettings: {
+                ...storeConfig.checkoutSettings,
+                capabilities: {
+                    ...defaultCapabilities,
+                    ...capabilities,
+                },
+            },
+        });
     };
 
     beforeEach(() => {
@@ -48,6 +85,55 @@ describe('AddressSelect component', () => {
         renderAddressSelect();
 
         expect(screen.getByText('Enter a new address')).toBeInTheDocument();
+    });
+
+    it('renders `Select an address` when there is no selected address and manual address entry is restricted', () => {
+        const storeConfig = getStoreConfig();
+
+        jest.spyOn(checkoutService.getState().data, 'getConfig').mockReturnValue({
+            ...storeConfig,
+            checkoutSettings: {
+                ...storeConfig.checkoutSettings,
+                capabilities: {
+                    ...defaultCapabilities,
+                    billing: {
+                        ...defaultCapabilities.billing,
+                        restrictManualAddressEntry: true,
+                    },
+                },
+            },
+        });
+
+        renderAddressSelect({ type: AddressType.Billing });
+
+        expect(screen.getByTestId('address-select-placeholder')).toHaveTextContent(
+            'Select an address',
+        );
+        expect(screen.queryByText('Enter a new address')).not.toBeInTheDocument();
+    });
+
+    it('renders `Enter Address` when manual address entry is only restricted for the other address type', () => {
+        const storeConfig = getStoreConfig();
+
+        jest.spyOn(checkoutService.getState().data, 'getConfig').mockReturnValue({
+            ...storeConfig,
+            checkoutSettings: {
+                ...storeConfig.checkoutSettings,
+                capabilities: {
+                    ...defaultCapabilities,
+                    shipping: {
+                        ...defaultCapabilities.shipping,
+                        restrictManualAddressEntry: true,
+                    },
+                },
+            },
+        });
+
+        renderAddressSelect({ type: AddressType.Billing });
+
+        expect(screen.getByTestId('address-select-placeholder')).toHaveTextContent(
+            'Enter a new address',
+        );
     });
 
     it('renders static address when there is a selected address', () => {
@@ -93,24 +179,21 @@ describe('AddressSelect component', () => {
         // TODO: update with userEvent and investigate range.cloneRange() issue
         fireEvent.click(screen.getByTestId('address-select-button'));
         // TODO: update with userEvent and investigate range.cloneRange() issue
-        fireEvent.click(screen.getByTestId('add-new-address'))
+        fireEvent.click(screen.getByTestId('add-new-address'));
 
         expect(onUseNewAddress).toHaveBeenCalled();
 
-        // eslint-disable-next-line testing-library/no-node-access
-        const addressOption = screen.getAllByTestId('address-select-option')[0].firstChild;
+        const firstAddressOption = screen.getAllByTestId('address-select-option-action')[0];
 
-        expect(addressOption).toBeInTheDocument();
+        expect(firstAddressOption).toBeInTheDocument();
 
-        if (addressOption) {
-            // TODO: update with userEvent and investigate range.cloneRange() issue
-            fireEvent.click(addressOption);
-        }
+        // TODO: update with userEvent and investigate range.cloneRange() issue
+        fireEvent.click(firstAddressOption);
 
         expect(onSelectAddress).toHaveBeenCalledWith(getCustomer().addresses[0]);
     });
 
-    it('doest not trigger onSelectAddress callback if same address is selected', () => {
+    it('does not trigger onSelectAddress callback if same address is selected', () => {
         const onSelectAddress = jest.fn();
         const selectedAddress = getCustomer().addresses[0];
 
@@ -121,17 +204,56 @@ describe('AddressSelect component', () => {
         // TODO: update with userEvent and investigate range.cloneRange() issue
         fireEvent.click(addressSelectButton);
 
-        // eslint-disable-next-line testing-library/no-node-access
-        const addressOption = screen.getAllByTestId('address-select-option')[0].firstChild;
+        const firstAddressOption = screen.getAllByTestId('address-select-option-action')[0];
 
-        expect(addressOption).toBeInTheDocument();
+        expect(firstAddressOption).toBeInTheDocument();
 
-        if (addressOption) {
-            // TODO: update with userEvent and investigate range.cloneRange() issue
-            fireEvent.click(addressOption);
-        }
+        // TODO: update with userEvent and investigate range.cloneRange() issue
+        fireEvent.click(firstAddressOption);
 
         expect(onSelectAddress).not.toHaveBeenCalled();
+    });
+
+    it('renders searchable menu when company address book has enough addresses of the step type', () => {
+        mockCapabilities({
+            userJourney: { ...defaultCapabilities.userJourney, hasCompanyAddressBook: true },
+        });
+
+        renderAddressSelect({ addresses: mockB2BAddresses });
+
+        fireEvent.click(screen.getByTestId('address-select-button'));
+
+        expect(screen.getByRole('textbox', { name: 'Search addresses' })).toBeInTheDocument();
+    });
+
+    it('renders plain menu with type-matching addresses when below the search limit', () => {
+        mockCapabilities({
+            userJourney: { ...defaultCapabilities.userJourney, hasCompanyAddressBook: true },
+        });
+
+        renderAddressSelect({ addresses: b2bAddresses });
+
+        fireEvent.click(screen.getByTestId('address-select-button'));
+
+        expect(screen.queryByRole('textbox', { name: 'Search addresses' })).not.toBeInTheDocument();
+        expect(screen.getAllByTestId('address-select-option')).toHaveLength(
+            b2bAddresses.filter((address) => address.isBilling).length,
+        );
+        expect(screen.queryByText('Shipping Only Way')).not.toBeInTheDocument();
+    });
+
+    it('hides "Enter a new address" menu item when manual address entry is restricted', () => {
+        mockCapabilities({
+            userJourney: { ...defaultCapabilities.userJourney, hasCompanyAddressBook: true },
+            billing: { ...defaultCapabilities.billing, restrictManualAddressEntry: true },
+        });
+
+        renderAddressSelect({ addresses: b2bAddresses });
+
+        fireEvent.click(screen.getByTestId('address-select-button'));
+
+        expect(screen.getAllByTestId('address-select-option')).not.toHaveLength(0);
+        expect(screen.queryByTestId('add-new-address')).not.toBeInTheDocument();
     });
 
     it('shows Powered By PP Fastlane label', () => {

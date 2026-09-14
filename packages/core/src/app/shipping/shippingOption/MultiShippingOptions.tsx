@@ -1,10 +1,11 @@
 import { type Consignment } from '@bigcommerce/checkout-sdk';
-import classNames from 'classnames';
 import React from 'react';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { Alert, AlertType } from '@bigcommerce/checkout/ui';
+
+import { isErrorWithType } from '../../common/error';
 
 import MultiShippingOptionsListV2 from './MultiShippingOptionsList';
 import { isLoadingSelector } from './ShippingOptions';
@@ -14,6 +15,7 @@ interface MultiShippingOptionsV2Props {
     isLoading: boolean;
     shippingQuoteFailedMessage: string;
     resetErrorConsignmentNumber(): void;
+    onUnhandledError?(error: Error): void;
 }
 
 export const MultiShippingOptions = ({
@@ -21,27 +23,38 @@ export const MultiShippingOptions = ({
     isLoading,
     resetErrorConsignmentNumber,
     shippingQuoteFailedMessage,
+    onUnhandledError,
 }: MultiShippingOptionsV2Props) => {
-    const { checkoutService, checkoutState } = useCheckout();
-    const { themeV2 } = useThemeContext();
+    const { checkoutService, checkoutState } = useCheckout((state) => state);
+    const { enhancedThemeV1 } = useThemeContext();
 
     const selectShippingOption = async (consignmentId: string, shippingOptionId: string) => {
-        await checkoutService.selectConsignmentShippingOption(consignmentId, shippingOptionId);
-        resetErrorConsignmentNumber();
+        try {
+            await checkoutService.selectConsignmentShippingOption(consignmentId, shippingOptionId);
+            resetErrorConsignmentNumber();
+        } catch (error) {
+            if (isErrorWithType(error) && error.type === 'empty_cart') {
+                onUnhandledError?.(error);
+            }
+        }
     };
     const isLoadingOptions = isLoadingSelector(checkoutState, isLoading)(consignment.id);
 
     return (
         <div>
-            <h3 className={classNames('shipping-option-header',
-                { 'body-bold': themeV2 })}
-            >
-                <TranslatedString id="shipping.shipping_method_label" />
+            <h3 className="shipping-option-header optimizedCheckout-contentPrimary body-bold">
+                <TranslatedString
+                    id={
+                        enhancedThemeV1
+                            ? 'shipping.shipping_method_label_v2'
+                            : 'shipping.shipping_method_label'
+                    }
+                />
             </h3>
             {(!consignment.availableShippingOptions ||
                 !consignment.availableShippingOptions.length) && (
-                    <Alert type={AlertType.Error}>{shippingQuoteFailedMessage}</Alert>
-                )}
+                <Alert type={AlertType.Error}>{shippingQuoteFailedMessage}</Alert>
+            )}
             {Boolean(consignment.availableShippingOptions) &&
                 consignment.availableShippingOptions && (
                     <MultiShippingOptionsListV2

@@ -22,6 +22,7 @@ export function getPaymentMethod(): PaymentMethod {
             testMode: false,
         },
         type: 'PAYMENT_TYPE_API',
+        skipRedirectConfirmationAlert: false,
     };
 }
 
@@ -37,11 +38,10 @@ export function getPaypalCreditPaymentMethod(): PaymentMethod {
             payPalCreditProductBrandName: { credit: 'Pay in 3' },
         },
         type: 'PAYMENT_TYPE_API',
+        skipRedirectConfirmationAlert: false,
     };
 }
 
-// TODO: CHECKOUT-9010 Clean up this mock if it's not used
-/* istanbul ignore next */
 export function getMobilePaymentMethod(): PaymentMethod {
     return {
         id: 'authorizenetMobile',
@@ -64,5 +64,6 @@ export function getMobilePaymentMethod(): PaymentMethod {
             testMode: false,
         },
         type: 'PAYMENT_TYPE_API',
+        skipRedirectConfirmationAlert: false,
     };
 }

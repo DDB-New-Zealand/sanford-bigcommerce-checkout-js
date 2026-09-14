@@ -3,38 +3,47 @@ import React, { type FunctionComponent, useCallback, useMemo } from 'react';
 
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
-import { Fieldset, FormField, Label, Legend, TextInput } from '../ui/form';
+import { Fieldset, FormField, Label, Legend, TextInput } from '@bigcommerce/checkout/ui';
 
 const OrderComments: FunctionComponent = () => {
-    const { themeV2 } = useThemeContext();
+    const { enhancedThemeV1 } = useThemeContext();
+    const orderCommentLabelId = enhancedThemeV1
+        ? 'shipping.order_comment_label_v2'
+        : 'shipping.order_comment_label';
 
     const renderLabel = useCallback(
         (name: string) => (
             <Label hidden htmlFor={name}>
-                <TranslatedString id="shipping.order_comment_label" />
+                <TranslatedString id={orderCommentLabelId} />
             </Label>
         ),
-        [],
+        [orderCommentLabelId],
     );
 
     const renderInput = useCallback(
-        ({ field }: FieldProps) => <TextInput {...field} autoComplete="off" id="orderComment" maxLength={2000} themeV2={themeV2} />,
+        ({ field }: FieldProps) => (
+            <TextInput {...field} autoComplete="off" id="orderComment" maxLength={2000} />
+        ),
         [],
     );
 
     const legend = useMemo(
         () => (
-            <Legend themeV2={themeV2}>
-                <TranslatedString id="shipping.order_comment_label" />
+            <Legend>
+                <TranslatedString id={orderCommentLabelId} />
             </Legend>
         ),
-        [],
+        [orderCommentLabelId],
     );
 
     return (
         <Fieldset legend={legend} testId="checkout-shipping-comments">
-            <FormField id="orderComment" input={renderInput} label={renderLabel} name="orderComment" />
+            <FormField
+                id="orderComment"
+                input={renderInput}
+                label={renderLabel}
+                name="orderComment"
+            />
         </Fieldset>
     );
 };

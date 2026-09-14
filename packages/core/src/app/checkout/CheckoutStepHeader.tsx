@@ -5,14 +5,13 @@ import React, { type FunctionComponent, memo, type ReactNode } from 'react';
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
-import { Button, ButtonSize, ButtonVariant } from '../ui/button';
-import { IconCheck } from '../ui/icon';
+import { Button, ButtonSize, ButtonVariant, IconCheck } from '@bigcommerce/checkout/ui';
 
 import type CheckoutStepType from './CheckoutStepType';
 
 export interface CheckoutStepHeaderProps {
     heading: ReactNode;
+    headerAction?: ReactNode;
     isActive?: boolean;
     isComplete?: boolean;
     isEditable?: boolean;
@@ -23,6 +22,7 @@ export interface CheckoutStepHeaderProps {
 
 const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
     heading,
+    headerAction,
     isActive,
     isComplete,
     isEditable,
@@ -30,7 +30,7 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
     summary,
     type,
 }) => {
-    const { themeV2 } = useThemeContext();
+    const { enhancedThemeV1 } = useThemeContext();
 
     return (
         <div
@@ -50,41 +50,54 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                 />
 
                 <h2
-                    className={classNames('stepHeader-title optimizedCheckout-headingPrimary',
-                        { 'header': themeV2 && (isActive || isComplete) },
-                        { 'header-secondary': themeV2 && !isActive && !isComplete })}
-                >{heading}</h2>
+                    className={classNames('stepHeader-title', {
+                        'header optimizedCheckout-headingPrimary': isActive || isComplete,
+                        'header-secondary optimizedCheckout-headingSecondary':
+                            !isActive && !isComplete,
+                    })}
+                >
+                    {heading}
+                </h2>
             </div>
 
-            {themeV2 && !isActive && isComplete &&
+            {enhancedThemeV1 && !isActive && isComplete && (
                 <div
                     className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular"
                     data-test="step-info"
-                    >
-                        {summary}
+                >
+                    {summary}
                 </div>
-            }
+            )}
 
-            {!themeV2 &&
+            {!enhancedThemeV1 && (
                 <div
                     className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary"
                     data-test="step-info"
                 >
                     {!isActive && isComplete && summary}
                 </div>
-            }
+            )}
 
             {isEditable && !isActive && (
                 <div className="stepHeader-actions stepHeader-column">
                     <Button
                         aria-expanded={isActive}
-                        className={classNames({ 'body-regular': themeV2 })}
+                        className="optimizedCheckout-contentPrimary body-regular"
                         size={ButtonSize.Tiny}
                         testId="step-edit-button"
                         variant={ButtonVariant.Secondary}
                     >
                         <TranslatedString id="common.edit_action" />
                     </Button>
+                </div>
+            )}
+
+            {isActive && headerAction && (
+                <div
+                    className="stepHeader-actions stepHeader-actions--cta stepHeader-column"
+                    data-test="step-header-action"
+                >
+                    {headerAction}
                 </div>
             )}
         </div>

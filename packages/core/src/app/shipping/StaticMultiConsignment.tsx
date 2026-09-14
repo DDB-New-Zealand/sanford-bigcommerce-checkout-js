@@ -1,15 +1,17 @@
 import { type Cart, type Consignment } from '@bigcommerce/checkout-sdk';
-import classNames from 'classnames';
 import React, { type FunctionComponent, memo } from 'react';
 
-import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
+import { useCheckout } from '@bigcommerce/checkout/contexts';
 import { localizeAddress, TranslatedString } from '@bigcommerce/checkout/locale';
-import { isPayPalFastlaneAddress, PoweredByPayPalFastlaneLabel, usePayPalFastlaneAddress } from '@bigcommerce/checkout/paypal-fastlane-integration';
+import {
+    isPayPalFastlaneAddress,
+    PoweredByPayPalFastlaneLabel,
+    usePayPalFastlaneAddress,
+} from '@bigcommerce/checkout/paypal-fastlane-integration';
 
 import ConsignmentLineItemDetail from './ConsignmentLineItemDetail';
 import findLineItems from './findLineItems';
 import getLineItemsCount from './getLineItemsCount';
-import getShippingCostAfterAutomaticDiscount from './getShippingCostAfterAutomaticDiscount';
 import { StaticShippingOption } from './shippingOption';
 
 import './StaticMultiConsignment.scss';
@@ -18,53 +20,54 @@ interface StaticMultiConsignmentProps {
     consignment: Consignment;
     cart: Cart;
     consignmentNumber: number;
-    isShippingDiscountDisplayEnabled: boolean;
 }
 
 const StaticMultiConsignment: FunctionComponent<StaticMultiConsignmentProps> = ({
     consignment,
     cart,
     consignmentNumber,
-    isShippingDiscountDisplayEnabled,
 }) => {
-    const {
-        checkoutState: {
-            data: { getShippingCountries },
-        },
-    } = useCheckout();
-    const { themeV2 } = useThemeContext();
+    const { selectedState: shippingCountries } = useCheckout(({ data }) =>
+        data.getShippingCountries(),
+    );
 
-    const { shippingAddress: addressWithoutLocalization, selectedShippingOption } = consignment;
-    const address = localizeAddress(addressWithoutLocalization, getShippingCountries());
+    const {
+        shippingAddress: addressWithoutLocalization,
+        selectedShippingOption,
+        comparisonShippingCost,
+    } = consignment;
+    const address = localizeAddress(addressWithoutLocalization, shippingCountries);
     const { paypalFastlaneAddresses } = usePayPalFastlaneAddress();
-    const showPayPalFastlaneAddressLabel = isPayPalFastlaneAddress(address, paypalFastlaneAddresses);
+    const showPayPalFastlaneAddressLabel = isPayPalFastlaneAddress(
+        address,
+        paypalFastlaneAddresses,
+    );
 
     const lineItems = findLineItems(cart, consignment);
 
     return (
         <div className="staticMultiConsignment">
-            <h3 className={classNames('staticMultiConsignment-header',
-                { 'body-bold': themeV2 })}>
-                <TranslatedString data={{ consignmentNumber }} id="shipping.multishipping_consignment_index_heading" />
+            <h3 className="staticMultiConsignment-header optimizedCheckout-contentPrimary body-bold">
+                <TranslatedString
+                    data={{ consignmentNumber }}
+                    id="shipping.multishipping_consignment_index_heading"
+                />
             </h3>
 
             <div className="checkout-address--static">
-                <p className={classNames('address-entry',
-                    { 'sub-text': themeV2 })}>
+                <p className="address-entry optimizedCheckout-contentPrimary sub-text">
                     <span className="first-name">{`${address.firstName} `}</span>
                     <span className="family-name">{address.lastName}</span>
                 </p>
                 <div className="address-details">
-                    <p className={classNames('street-address address-entry',
-                        { 'sub-text': themeV2 })}>
+                    <p className="street-address address-entry optimizedCheckout-contentPrimary sub-text">
                         <span className="address-line-1">{address.address1}</span>
                         {address.address2 && (
                             <span className="address-line-2">{`, ${address.address2}`}</span>
                         )}
                     </p>
 
-                    <p className={classNames('address-entry',
-                        { 'sub-text': themeV2 })}>
+                    <p className="address-entry optimizedCheckout-contentPrimary sub-text">
                         {address.city && <span className="locality">{address.city}</span>}
                         {address.localizedProvince && (
                             <span className="region">{`, ${address.localizedProvince}`}</span>
@@ -82,15 +85,15 @@ const StaticMultiConsignment: FunctionComponent<StaticMultiConsignmentProps> = (
             {showPayPalFastlaneAddressLabel && <PoweredByPayPalFastlaneLabel />}
 
             <div className="staticConsignment-items">
-                <span className={themeV2 ? 'body-bold' : ''}>
-                <TranslatedString
-                    data={{ count: getLineItemsCount(lineItems) }}
-                    id="cart.item_count_text"
-                />
+                <span className="optimizedCheckout-contentPrimary body-bold">
+                    <TranslatedString
+                        data={{ count: getLineItemsCount(lineItems) }}
+                        id="cart.item_count_text"
+                    />
                 </span>
 
                 <ConsignmentLineItemDetail isMultiShippingSummary lineItems={lineItems} />
-        </div>
+            </div>
 
             {selectedShippingOption && (
                 <div>
@@ -98,7 +101,7 @@ const StaticMultiConsignment: FunctionComponent<StaticMultiConsignmentProps> = (
                         <StaticShippingOption
                             displayAdditionalInformation={false}
                             method={selectedShippingOption}
-                            shippingCostAfterDiscount={isShippingDiscountDisplayEnabled ? getShippingCostAfterAutomaticDiscount(selectedShippingOption.cost, [consignment]) : undefined}
+                            shippingCostAfterDiscount={comparisonShippingCost}
                         />
                     </div>
                 </div>
